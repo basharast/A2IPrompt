@@ -1,0 +1,48 @@
+<!--
+/**
+ * Developer: Bashar Astifan 2023
+ * Link: https://github.com/basharast
+ * License: Free, Not for commercial use!
+ */
+-->
+<html>
+
+<head>
+    <title>A2I Prompt</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <meta name="author" content="Bashar Astifan">
+    <meta name="description" content="InvokeAI prompt syntax resolver.">
+    <meta property="og:title" content="Bashar Astifan">
+    <meta property="og:description" content="InvokeAI prompt syntax resolver.">
+    <script src="./assets/jquery.min.js"></script>
+    <link rel="shortcut icon" href="./assets/fav.png">
+    <script src="./converter.js"></script>
+    <link rel="stylesheet" href="./converter.css">
+</head>
+
+<body>
+    <div class="div">
+        <div>
+            <label class="input-label" for="auto1111-positive">Auto1111 (Positive)</label>
+            <textarea class="prompt-input" id="auto1111-positive" placeholder="Auto1111 (Positive)" rows="5"></textarea>
+            <label class="input-label" for="auto1111-negative">Auto1111 (Negative)</label>
+            <textarea class="prompt-input" id="auto1111-negative" placeholder="Auto1111 (Negative)" rows="5"></textarea>
+        </div>
+        <label class="input-label-invoke" for="invokeai-prompt">invokeAI (Prompt)</label>
+        <textarea class="prompt-input-reversed invokeai-input" id="invokeai-prompt" placeholder="invokeAI (Prompt)"
+            rows="5"></textarea><br />
+        <div class="reverse-check">
+            <input type="checkbox" id="reverse-check">
+            <label for="reverse-check">Allow from invokeai to auto1111 (Beta)</label>
+        </div>
+    </div>
+    <footer>
+        <div class="footer-copyright text-center">&copy; Developed with ❤️</i> by
+            <a href="https://github.com/basharast" class="white-text" target="_blank">Bashar Astifan</a>. <a
+                href="https://paypal.me/astifan" target="_blank">Dontate (PayPal)</a>
+        </div>
+    </footer>
+</body>
+
+</html>
