@@ -65,7 +65,7 @@ var regexConversionTable = {
             recursiveCheck: false
         },
         {
-            inputRegex: String.raw`(?!\s)([\w\s\_]+)[\s]{0,3}\:\s{0,3}([\d\.]+)`,
+            inputRegex: String.raw`(?!\s)([a-zA-Z\s\_]+)[\s]{0,3}\:\s{0,3}([\d\.]+)`,
             outputRegex: "($1)$2",
             outputNegativeRegex: "$1",
             recursiveCheck: false
