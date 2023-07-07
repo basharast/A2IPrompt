@@ -13,9 +13,9 @@ unless your InvokeAI version has 77 tokens limits ([solution here](https://githu
 you can calculate token count here at [this page](https://platform.openai.com/tokenizer)
 
 ## Usage
-Just open this repo website and use it directly
+Online test [click here](https://basharast.github.io/A2IPrompt/) and use it directly
 
-or download this repo and open `index.html` it will work fine locally.
+or download this repo and open `index.html` it will work locally.
 
 ## Contribution
 Feel free to submit any request or fix
@@ -25,6 +25,9 @@ if you want to make your own fork just don't remove copy right section.
 ## Next
 
 - [ ] Add tokens counter
+
+## Privacy 
+This tool works locally and doesn't send or collect any usage data or any texts
 
 ## Credits
 Bashar Astifan (Developer)
