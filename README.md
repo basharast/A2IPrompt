@@ -3,6 +3,8 @@ This tool will help you to convert Automatic1111 prompt to [InvokeAI](https://gi
 
 I'm sure it will make your life easier while applying prompts from online
 
+<img src="https://github.com/basharast/A2IPrompt/assets/3244951/9ed14aa6-0dd6-4938-9c19-d6a21a0b68ca">
+
 ## Results
 You should get same result by 50-80%
 
