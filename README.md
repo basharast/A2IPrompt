@@ -10,6 +10,8 @@ at least you wont get totally different result
 
 unless your InvokeAI version has 77 tokens limits ([solution here](https://github.com/invoke-ai/InvokeAI/pull/2896))
 
+you can calculate token count here at [this page](https://platform.openai.com/tokenizer)
+
 ## Usage
 Just open this repo website and use it directly
 
@@ -19,6 +21,10 @@ or download this repo and open `index.html` it will work fine locally.
 Feel free to submit any request or fix
 
 if you want to make your own fork just don't remove copy right section.
+
+## Next
+
+- [ ] Add tokens counter
 
 ## Credit
 Bashar Astifan (Developer)
