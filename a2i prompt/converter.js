@@ -40,7 +40,7 @@ var regexConversionTable = {
                 }
                 return inputText;
             },
-            outputNegativeRegex: "$1, $2",
+            outputNegativeRegex: "$1",
             recursiveCheck: false
         },
         {
