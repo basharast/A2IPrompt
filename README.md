@@ -27,6 +27,7 @@ if you want to make your own fork just don't remove copy right section.
 ## Next
 
 - [ ] Add tokens counter
+- [ ] Add copy shortcuts
 
 ## Privacy 
 This tool works locally and doesn't send or collect any usage data or any texts
