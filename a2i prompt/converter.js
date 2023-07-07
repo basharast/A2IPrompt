@@ -88,6 +88,12 @@ var regexConversionTable = {
             outputNegativeRegex: ")$2",
             recursiveCheck: false
         },
+        {
+            inputRegex: String.raw`(\+:([\d\.]+))`,
+            outputRegex: "$2",
+            outputNegativeRegex: "$2",
+            recursiveCheck: false
+        },
     ],
     auto1111RegexPatterns: [
         {
