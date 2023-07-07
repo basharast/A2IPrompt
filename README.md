@@ -26,7 +26,7 @@ if you want to make your own fork just don't remove copy right section.
 
 - [ ] Add tokens counter
 
-## Credit
+## Credits
 Bashar Astifan (Developer)
 
 HTML page has some elements from [Navneet](https://codepen.io/heynavneet/details/yXjPLw) and [Trent Dec](https://codepen.io/Trentdec/pen/YBEQKm)
