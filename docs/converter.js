@@ -41,12 +41,14 @@ var regexConversionTable = {
                 return inputText;
             },
             outputNegativeRegex: "$1",
+            outputNegativeRawRegex: "$1",
             recursiveCheck: false
         },
         {
-            inputRegex: String.raw`!#([^)]+)#!(?![\+\d])`,
+            inputRegex: String.raw`!#([^)]+)#!(?![\-\+\d])`,
             outputRegex: "($1)@",
-            outputNegativeRegex: "$1",
+            outputNegativeRegex: "($1)!",
+            outputNegativeRawRegex: "$1",
             recursiveCheck: true,
             replacementsMap:
             {
@@ -55,6 +57,7 @@ var regexConversionTable = {
                     { target: "!#", replacement: String.raw`\(`, output: false },
                     { target: "#!", replacement: String.raw`\)`, output: false },
                     { target: "@", replacement: "+", output: true },
+                    { target: "!", replacement: "-", output: true },
                 ]
             },
         },
@@ -62,36 +65,42 @@ var regexConversionTable = {
             inputRegex: String.raw`\<lora:(.*?):\s{0,3}([\d\.]+)\>`,
             outputRegex: "withLora($1,$2)",
             outputNegativeRegex: "$1",
+            outputNegativeRawRegex: "$1",
             recursiveCheck: false
         },
         {
             inputRegex: String.raw`(?!\s)([a-zA-Z\s\_]+)[\s]{0,3}\:\s{0,3}([\d\.]+)`,
             outputRegex: "($1)$2",
-            outputNegativeRegex: "$1",
+            outputNegativeRegex: "($1)$2",
+            outputNegativeRawRegex: "$1",
             recursiveCheck: false
         },
         {
             inputRegex: String.raw`\[([^[]+)\](?![\+\d])`,
             outputRegex: `($1)${defaultWeight}`,
-            outputNegativeRegex: "$1",
+            outputNegativeRegex: `($1)${defaultWeight}`,
+            outputNegativeRawRegex: "$1",
             recursiveCheck: false
         },
         {
             inputRegex: String.raw`(::[\d\.]+)`,
             outputRegex: "", //No idea currently
             outputNegativeRegex: "",
+            outputNegativeRawRegex: "",
             recursiveCheck: false
         },
         {
             inputRegex: String.raw`(\):([\d\.]+))`,
             outputRegex: ")$2",
             outputNegativeRegex: ")$2",
+            outputNegativeRawRegex: ")$2",
             recursiveCheck: false
         },
         {
             inputRegex: String.raw`(\+:([\d\.]+))`,
             outputRegex: "$2",
             outputNegativeRegex: "$2",
+            outputNegativeRawRegex: "$2",
             recursiveCheck: false
         },
     ],
@@ -100,36 +109,42 @@ var regexConversionTable = {
             inputRegex: String.raw`\[([^\]]+)\]`,
             outputRegex: "",
             outputNegativeRegex: "",
+            outputNegativeRawRegex: "",
             recursiveCheck: false
         },
         {
             inputRegex: String.raw`withLora\((.*?),\s{0,3}([\d\.]+)\)`,
             outputRegex: "<lora:$1:$2>",
             outputNegativeRegex: "$1",
+            outputNegativeRawRegex: "",
             recursiveCheck: false
         },
         {
             inputRegex: String.raw`\(([^\)]+)\)${defaultWeight}`,
             outputRegex: `[$1]`,
             outputNegativeRegex: "[$1]",
+            outputNegativeRawRegex: "[$1]",
             recursiveCheck: false
         },
         {
             inputRegex: String.raw`\(([^\)]+)\)([\d\.]+)`,
             outputRegex: `$1:$2`,
             outputNegativeRegex: "$1:$2",
+            outputNegativeRawRegex: "$1:$2",
             recursiveCheck: false
         },
         {
-            inputRegex: String.raw`\(([^)]+)\)@`,
+            inputRegex: [String.raw`\(([^)]+)\)@`, String.raw`\(([^)]+)\)!`],
             outputRegex: "!#$1#!",
-            outputNegativeRegex: "$1",
+            outputNegativeRegex: "!#$1#!",
+            outputNegativeRawRegex: "$1",
             recursiveCheck: true,
             replacementsMap:
             {
                 loopCount: 10,
                 replacements: [
                     { target: "@", replacement: String.raw`\+`, output: false },
+                    { target: "!", replacement: String.raw`\-`, output: false },
                     { target: "!#", replacement: `(`, output: true },
                     { target: "#!", replacement: `)`, output: true },
                 ]
@@ -140,6 +155,7 @@ var regexConversionTable = {
 
 var reverseConversion = false;
 var allowReverseConversion = false;
+var ignoreNegativeParameters = false;
 
 function regexValueRecursiveReplace(input, regexPatternItem) {
     var inputPositive = input.positive;
@@ -150,13 +166,15 @@ function regexValueRecursiveReplace(input, regexPatternItem) {
     var patternInput = regexPatternItem.inputRegex;
     var patternOutput = regexPatternItem.outputRegex;
     var patternNegativeOutput = regexPatternItem.outputNegativeRegex;
-
+    var patternNegativeRawOutput = regexPatternItem.outputNegativeRawRegex;
 
 
     for (var i = loopCount; i >= 0; i--) {
         var iterations = i;
         patternInput = regexPatternItem.inputRegex;
         patternOutput = regexPatternItem.outputRegex;
+        patternNegativeOutput = regexPatternItem.outputNegativeRegex;
+        patternNegativeRawOutput = regexPatternItem.outputNegativeRawRegex;
 
         var inputRegexArray = [patternInput];
         if (typeof (patternInput) === 'object') {
@@ -177,17 +195,30 @@ function regexValueRecursiveReplace(input, regexPatternItem) {
                     inputRegexItem = inputRegexItem.replace(mapTarget, mapReplacement);
                 } else {
                     patternOutput = patternOutput.replace(mapTarget, mapReplacement);
+                    if (patternNegativeOutput.indexOf(mapTarget) !== -1) {
+                        patternNegativeOutput = patternNegativeOutput.replace(mapTarget, mapReplacement);
+                    }
                 }
             });
 
             var regexExp = new RegExp(inputRegexItem, 'g');
             if (typeof patternOutput !== 'function') {
                 inputPositive = inputPositive.replace(regexExp, patternOutput);
+                if(!ignoreNegativeParameters){
+                inputNegative = inputNegative.replace(regexExp, patternNegativeOutput);
+                }
             } else {
                 const regexGroups = inputPositive.matchAll(inputRegexItem);
                 inputPositive = patternOutput(inputPositive, regexGroups);
+
+                const regexNegativeGroups = inputNegative.matchAll(inputRegexItem);
+                if(!ignoreNegativeParameters){
+                inputNegative = patternOutput(inputNegative, regexNegativeGroups);
+                }
             }
-            inputNegative = inputNegative.replace(regexExp, patternNegativeOutput);
+            if(ignoreNegativeParameters){
+                inputNegative = inputNegative.replace(regexExp, patternNegativeRawOutput);
+            }
         });
 
     }
@@ -204,6 +235,7 @@ function regexValueReplace(input, regexPatternItem) {
     var patternInput = regexPatternItem.inputRegex;
     var patternOutput = regexPatternItem.outputRegex;
     var patternNegativeOutput = regexPatternItem.outputNegativeRegex;
+    var patternNegativeRawOutput = regexPatternItem.outputNegativeRawRegex;
 
     var inputRegexArray = [patternInput];
     if (typeof (patternInput) === 'object') {
@@ -214,11 +246,20 @@ function regexValueReplace(input, regexPatternItem) {
         var regexExp = new RegExp(inputRegexItem, 'g');
         if (typeof patternOutput !== 'function') {
             inputPositive = inputPositive.replace(regexExp, patternOutput);
+            if(!ignoreNegativeParameters){
+            inputNegative = inputNegative.replace(regexExp, patternNegativeOutput);
+            }
         } else {
             const regexGroups = inputPositive.matchAll(inputRegexItem);
             inputPositive = patternOutput(inputPositive, regexGroups);
+            if(!ignoreNegativeParameters){
+            const regexNegativeGroups = inputNegative.matchAll(inputRegexItem);
+            inputNegative = patternOutput(inputNegative, regexNegativeGroups);
+            }
         }
-        inputNegative = inputNegative.replace(regexExp, patternNegativeOutput);
+        if(ignoreNegativeParameters){
+            inputNegative = inputNegative.replace(regexExp, patternNegativeRawOutput);
+        }
     });
 
 
@@ -292,10 +333,17 @@ $(document).ready(function () {
     });
 
     $('#reverse-check').prop('checked', allowReverseConversion);
+    $('#raw-negative-check').prop('checked', ignoreNegativeParameters);
 
     $('#reverse-check').change(function () {
         allowReverseConversion = this.checked;
     });
+
+    $('#raw-negative-check').change(function () {
+        ignoreNegativeParameters = this.checked;
+        resolvePromptSyntax();
+    });
+
 
     setTimeout(resolvePromptSyntax(), 500);
 });
