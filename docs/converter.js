@@ -204,19 +204,19 @@ function regexValueRecursiveReplace(input, regexPatternItem) {
             var regexExp = new RegExp(inputRegexItem, 'g');
             if (typeof patternOutput !== 'function') {
                 inputPositive = inputPositive.replace(regexExp, patternOutput);
-                if(!ignoreNegativeParameters){
-                inputNegative = inputNegative.replace(regexExp, patternNegativeOutput);
+                if (!ignoreNegativeParameters) {
+                    inputNegative = inputNegative.replace(regexExp, patternNegativeOutput);
                 }
             } else {
                 const regexGroups = inputPositive.matchAll(inputRegexItem);
                 inputPositive = patternOutput(inputPositive, regexGroups);
 
                 const regexNegativeGroups = inputNegative.matchAll(inputRegexItem);
-                if(!ignoreNegativeParameters){
-                inputNegative = patternOutput(inputNegative, regexNegativeGroups);
+                if (!ignoreNegativeParameters) {
+                    inputNegative = patternOutput(inputNegative, regexNegativeGroups);
                 }
             }
-            if(ignoreNegativeParameters){
+            if (ignoreNegativeParameters) {
                 inputNegative = inputNegative.replace(regexExp, patternNegativeRawOutput);
             }
         });
@@ -246,18 +246,18 @@ function regexValueReplace(input, regexPatternItem) {
         var regexExp = new RegExp(inputRegexItem, 'g');
         if (typeof patternOutput !== 'function') {
             inputPositive = inputPositive.replace(regexExp, patternOutput);
-            if(!ignoreNegativeParameters){
-            inputNegative = inputNegative.replace(regexExp, patternNegativeOutput);
+            if (!ignoreNegativeParameters) {
+                inputNegative = inputNegative.replace(regexExp, patternNegativeOutput);
             }
         } else {
             const regexGroups = inputPositive.matchAll(inputRegexItem);
             inputPositive = patternOutput(inputPositive, regexGroups);
-            if(!ignoreNegativeParameters){
-            const regexNegativeGroups = inputNegative.matchAll(inputRegexItem);
-            inputNegative = patternOutput(inputNegative, regexNegativeGroups);
+            if (!ignoreNegativeParameters) {
+                const regexNegativeGroups = inputNegative.matchAll(inputRegexItem);
+                inputNegative = patternOutput(inputNegative, regexNegativeGroups);
             }
         }
-        if(ignoreNegativeParameters){
+        if (ignoreNegativeParameters) {
             inputNegative = inputNegative.replace(regexExp, patternNegativeRawOutput);
         }
     });
@@ -341,6 +341,7 @@ $(document).ready(function () {
 
     $('#raw-negative-check').change(function () {
         ignoreNegativeParameters = this.checked;
+        reverseConversion = $('#reverse-check').is(':checked');
         resolvePromptSyntax();
     });
 
