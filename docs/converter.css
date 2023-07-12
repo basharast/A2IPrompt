@@ -40,6 +40,11 @@ body .div textarea {
   height: 250px;
 }
 
+.checkbox-input,
+.checkbox-label {
+  cursor: pointer;
+}
+
 .invokeai-input {
   width: 100% !important;
 }
@@ -52,15 +57,114 @@ body .div textarea {
 
 .input-label {
   position: absolute;
+  cursor: pointer;
   margin-top: -20px;
   margin-left: 5px;
 }
 
 .input-label-invoke {
   position: absolute;
+  cursor: pointer;
   transform: rotate(-90deg);
   margin-left: -70px;
   margin-top: 125px;
+}
+
+.auto1111-copy-a {
+  position: absolute;
+  margin-top: -18px;
+  margin-left: 145px;
+  cursor: pointer;
+}
+
+.auto1111-copy-b {
+  position: absolute;
+  margin-left: 153px;
+  cursor: pointer;
+  margin-top: -18px;
+}
+
+.invokeai-copy {
+  position: absolute;
+  margin-left: -14px;
+  cursor: pointer;
+  margin-top: 50px;
+}
+
+.copy-text {
+  font-size: 13px;
+  color: greenyellow;
+  margin-top: 0px;
+  position: absolute;
+  width: 85px;
+  display: none;
+}
+
+.copy-text-invokeai {
+  font-size: 13px;
+  color: greenyellow;
+  margin-top: -55px;
+  position: absolute;
+  width: 85px;
+  display: none;
+  transform: rotate(-90deg);
+  margin-left: -52px;
+}
+
+.auto1111-tokens-a {
+  position: absolute;
+  margin-top: -26px;
+  margin-left: 315px;
+  background: #28865a;
+  min-width: 50px;
+  min-height: 22px;
+  border-radius: 9px;
+  text-align: center;
+  padding-top: 4px;
+  border-bottom-right-radius: 0px;
+  border-top-right-radius: 0px;
+}
+
+.auto1111-tokens-b {
+  position: absolute;
+  margin-top: -26px;
+  margin-left: 365;
+  background: #bf4343;
+  min-width: 50px;
+  min-height: 22px;
+  border-radius: 9px;
+  text-align: center;
+  padding-top: 4px;
+  border-bottom-left-radius: 0px;
+  border-top-left-radius: 0px;
+}
+
+.invokeai-tokens-a {
+  position: absolute;
+  margin-top: -27px;
+  margin-left: 683px;
+  background: #bf4343;
+  min-width: 50px;
+  min-height: 22px;
+  border-radius: 9px;
+  text-align: center;
+  padding-top: 4px;
+  border-bottom-left-radius: 0px;
+  border-top-left-radius: 0px;
+}
+
+.invokeai-tokens-b {
+  position: absolute;
+  margin-top: -27px;
+  margin-left: 633px;
+  background: #28865a;
+  min-width: 50px;
+  min-height: 22px;
+  border-radius: 9px;
+  text-align: center;
+  padding-top: 4px;
+  border-bottom-right-radius: 0px;
+  border-top-right-radius: 0px;
 }
 
 body .div textarea:focus {

@@ -19,26 +19,65 @@
     <link rel="shortcut icon" href="./assets/fav.png">
     <script src="./converter.js"></script>
     <link rel="stylesheet" href="./converter.css">
+
+    <!-- cl100k_base.js taken from https://github.com/niieani/gpt-tokenizer-->
+    <script src="./encoder/cl100k_base.js"></script>
+    <script>
+        // the package is now available as a global:
+        const { encode, decode } = GPTTokenizer_cl100k_base
+    </script>
 </head>
 
 <body>
     <div class="div">
         <div>
-            <label class="input-label" for="auto1111-positive">Auto1111 (Positive)</label>
+            <label class="input-label" for="auto1111-positive" tooltip="Click to copy">Auto1111 (Positive)</label>
+            <a class="auto1111-copy-a" id="copy-auto1111-positive">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                    class="tabler-icon tabler-icon-copy">
+                    <path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path>
+                    <path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path>
+                </svg>
+                <p class="copy-text">Prompt copied</p>
+            </a>
             <textarea class="prompt-input" id="auto1111-positive" placeholder="Auto1111 (Positive)" rows="5"></textarea>
+            <p class="auto1111-tokens-a" id="auto1111-tokens-positive">0</p>
             <label class="input-label" for="auto1111-negative">Auto1111 (Negative)</label>
+            <a class="auto1111-copy-b" id="copy-auto1111-negative">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                    class="tabler-icon tabler-icon-copy">
+                    <path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path>
+                    <path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path>
+                </svg>
+                <p class="copy-text">Prompt copied</p>
+            </a>
             <textarea class="prompt-input" id="auto1111-negative" placeholder="Auto1111 (Negative)" rows="5"></textarea>
+            <p class="auto1111-tokens-b" id="auto1111-tokens-negative">0</p>
         </div>
         <label class="input-label-invoke" for="invokeai-prompt">invokeAI (Prompt)</label>
+        <a class="invokeai-copy" id="copy-invokeai-prompt">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                class="tabler-icon tabler-icon-copy">
+                <path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"></path>
+                <path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path>
+            </svg>
+            <p class="copy-text-invokeai">Prompt copied</p>
+        </a>
         <textarea class="prompt-input-reversed invokeai-input" id="invokeai-prompt" placeholder="invokeAI (Prompt)"
-            rows="5"></textarea><br />
+            rows="5"></textarea>
+        <p class="invokeai-tokens-a" id="invokeai-tokens-negative">0</p>
+        <p class="invokeai-tokens-b" id="invokeai-tokens-positive">0</p>
+        <br />
         <div class="reverse-check">
-            <input type="checkbox" id="reverse-check">
-            <label for="reverse-check">Allow from invokeai to auto1111 (Beta)</label>
+            <input class="checkbox-input" type="checkbox" id="reverse-check">
+            <label class="checkbox-label" for="reverse-check">Allow from invokeai to auto1111 (Beta)</label>
         </div>
         <div class="reverse-check">
-            <input type="checkbox" id="raw-negative-check">
-            <label for="raw-negative-check">Ignore Negative's (attention, weight)</label>
+            <input class="checkbox-input" type="checkbox" id="raw-negative-check">
+            <label class="checkbox-label" for="raw-negative-check">Ignore Negative's (attention, weight)</label>
         </div>
     </div>
     <footer>
