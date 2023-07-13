@@ -1,7 +1,6 @@
 /**
  * Developer: Bashar Astifan 2023
  * Link: https://github.com/basharast
- * License: Free, Not for commercial use!
  */
 
 //Main prompt syntax resolver table
