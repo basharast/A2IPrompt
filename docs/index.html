@@ -16,15 +16,15 @@
     <meta property="og:description" content="InvokeAI prompt syntax resolver.">
     <script src="./assets/jquery.min.js"></script>
     <link rel="shortcut icon" href="./assets/fav.png">
-    <script src="./converter.js"></script>
-    <link rel="stylesheet" href="./converter.css">
-
     <!-- cl100k_base.js taken from https://github.com/niieani/gpt-tokenizer-->
     <script src="./encoder/cl100k_base.js"></script>
     <script>
         // the package is now available as a global:
         const { encode, decode } = GPTTokenizer_cl100k_base
     </script>
+    <script src="./converter_standalone.js"></script>
+    <script src="./converter.js"></script>
+    <link rel="stylesheet" href="./converter.css">
 </head>
 
 <body>
