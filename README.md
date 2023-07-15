@@ -27,11 +27,17 @@ Feel free to submit any request or fix
 
 if you want to make your own fork just don't remove copy right section.
 
-## Next
 
-- [x] Add tokens counter
-- [x] Add copy shortcuts
-- [x] Improve negative resolver
+## Tips
+
+To avoid some bad results try one of the following:
+
+Change sampler
+
+Turn on Ignore Negative's (attention, weight)
+
+Reduce any weight such as (1.4 or 1.3) to lower value.
+
 
 ## Privacy 
 
