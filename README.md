@@ -32,11 +32,11 @@ if you want to make your own fork just don't remove copy right section.
 
 To avoid some bad results try one of the following:
 
-Change sampler
+- Change sampler
 
-Turn on Ignore Negative's (attention, weight)
+- Turn on Ignore Negative's (attention, weight)
 
-Reduce any weight such as (1.4 or 1.3) to lower value.
+- Reduce any weight such as (1.4 or 1.3) to lower value.
 
 
 ## Privacy 
