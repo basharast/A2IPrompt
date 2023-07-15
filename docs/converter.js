@@ -6,7 +6,7 @@
 
 var reverseConversion = false;
 var allowReverseConversion = false;
-var ignoreNegativeParameters = true;
+var ignoreNegativeParameters = false;
 
 function resolvePromptSyntax() {
     var inputPositive = "";
