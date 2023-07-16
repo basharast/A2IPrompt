@@ -239,7 +239,6 @@ $(document).ready(function () {
                     }, 2500);
                 }
                 totalClipboardCalls--;
-                console.log(totalClipboardCalls);
             }, autoCopyInvokeAI ? 1000 : 1);
 
         } catch (e) {
