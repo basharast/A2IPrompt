@@ -4,7 +4,7 @@ This tool will help you to convert [Automatic1111](https://github.com/AUTOMATIC1
 
 I'm sure it will make your life easier while applying prompts from online
 
-<img src="docs/assets/preview.jpg">
+<img src="docs/assets/preview.jpg?t=123">
 
 ## Results
 
