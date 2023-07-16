@@ -690,7 +690,7 @@ function setLimitedWeight(positive, negative) {
         limitWeightPositive = String.raw`$1`;
     }
 
-    if (negative !== null && [...positive.matchAll(/[\d\.]+/g)].length && negative > 0) {
+    if (negative !== null && [...negative.matchAll(/[\d\.]+/g)].length && negative > 0) {
         limitWeightNegative = negative;
     } else {
         limitWeightNegative = String.raw`$1`;
