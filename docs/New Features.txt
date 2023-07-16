@@ -1,0 +1,5 @@
+- Prompt syntax highlights
+- Auto prompt copy
+- Weight limiters
+- Much more translation improvements
+- UI improvements
