@@ -21,14 +21,17 @@ body {
 }
 
 body .div {
-  padding: 40px;
+  padding: 30px;
   border-radius: 10px;
   background: #101820;
   box-shadow: 10px 10px #C4A816;
-  margin-top: -70px;
+  position: absolute;
+  top: 3%;
 }
 
-body .div textarea {
+body .div textarea,
+.CodeMirror {
+  position: unset !important;
   margin: 5px;
   resize: none;
   padding: 5px;
@@ -36,7 +39,38 @@ body .div textarea {
   border-radius: 10px;
   box-shadow: 5px 5px #CCB32E;
   width: 350px;
-  height: 250px;
+  height: 250px !important;
+  scrollbar-width: thin;
+}
+
+::-webkit-scrollbar,
+*-webkit-scrollbar {
+  width: 9px;
+}
+
+::-webkit-scrollbar-track,
+*-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb,
+*-webkit-scrollbar-thumb {
+  background-color: rgba(155, 155, 155, 0.5);
+  border: transparent;
+}
+
+tr {
+  margin: auto;
+  display: flex;
+}
+
+th {
+  display: inline;
+}
+
+.options {
+  margin-left: 5px;
+  margin-top: -15px;
 }
 
 .checkbox-input,
@@ -48,10 +82,41 @@ body .div textarea {
   width: 100% !important;
 }
 
-.reverse-check {
+.invokeai-input~.CodeMirror {
+  width: 727px;
+}
+
+.CodeMirror-placeholder {
+  color: gray !important;
+}
+
+.prompt-input,
+.cm-s-night.CodeMirror {
+  background-color: #222122 !important;
+  color: white;
+  text-align: left;
+}
+
+.CodeMirror-simplescroll-horizontal,
+.CodeMirror-simplescroll-vertical {
+  position: relative !important;
+  z-index: 6;
+  background: #101820;
+  float: right;
+  margin-right: -5px;
+}
+
+.CodeMirror {
+  cursor: text;
+  font-weight: lighter;
+}
+
+.options-check {
   float: left;
   margin-top: 15px;
   margin-left: 5px;
+  border: 1px solid #ccb32e;
+  padding: 5px;
 }
 
 .input-label {
@@ -62,32 +127,27 @@ body .div textarea {
 }
 
 .input-label-invoke {
-  position: absolute;
   cursor: pointer;
-  transform: rotate(-90deg);
-  margin-left: -70px;
-  margin-top: 125px;
 }
 
 .auto1111-copy-a {
-  position: absolute;
-  margin-top: -18px;
-  margin-left: 145px;
+  margin-top: 1px;
   cursor: pointer;
+  position: absolute;
+  margin-left: 5px;
 }
 
 .auto1111-copy-b {
-  position: absolute;
-  margin-left: 153px;
   cursor: pointer;
-  margin-top: -18px;
+  margin-top: 1px;
+  position: absolute;
+  margin-left: 5px;
 }
 
 .invokeai-copy {
-  position: absolute;
-  margin-left: -14px;
   cursor: pointer;
-  margin-top: 50px;
+  margin-left: 3px;
+  position: absolute;
 }
 
 .copy-text {
@@ -95,29 +155,27 @@ body .div textarea {
   color: greenyellow;
   margin-top: 0px;
   position: absolute;
-  width: 85px;
+  width: 100px;
   display: none;
 }
 
 .copy-text-invokeai {
   font-size: 13px;
   color: greenyellow;
-  margin-top: -55px;
+  margin-top: -1px;
   position: absolute;
-  width: 85px;
+  width: 100px;
   display: none;
-  transform: rotate(-90deg);
-  margin-left: -52px;
+  margin-left: 0px;
 }
 
 .auto1111-tokens-a {
-  position: absolute;
-  margin-top: -26px;
-  margin-left: 315px;
   background: #28865a;
   min-width: 50px;
   min-height: 22px;
   border-radius: 9px;
+  border-top-right-radius: 9px;
+  border-bottom-right-radius: 9px;
   text-align: center;
   padding-top: 4px;
   border-bottom-right-radius: 0px;
@@ -125,13 +183,12 @@ body .div textarea {
 }
 
 .auto1111-tokens-b {
-  position: absolute;
-  margin-top: -26px;
-  margin-left: 365;
   background: #bf4343;
   min-width: 50px;
   min-height: 22px;
   border-radius: 9px;
+  border-top-left-radius: 9px;
+  border-bottom-left-radius: 9px;
   text-align: center;
   padding-top: 4px;
   border-bottom-left-radius: 0px;
@@ -139,13 +196,12 @@ body .div textarea {
 }
 
 .invokeai-tokens-a {
-  position: absolute;
-  margin-top: -27px;
-  margin-left: 683px;
   background: #bf4343;
   min-width: 50px;
   min-height: 22px;
   border-radius: 9px;
+  border-top-left-radius: 9px;
+  border-bottom-left-radius: 9px;
   text-align: center;
   padding-top: 4px;
   border-bottom-left-radius: 0px;
@@ -153,17 +209,35 @@ body .div textarea {
 }
 
 .invokeai-tokens-b {
-  position: absolute;
-  margin-top: -27px;
-  margin-left: 633px;
   background: #28865a;
   min-width: 50px;
   min-height: 22px;
   border-radius: 9px;
+  border-top-right-radius: 9px;
+  border-bottom-right-radius: 9px;
   text-align: center;
   padding-top: 4px;
   border-bottom-right-radius: 0px;
   border-top-right-radius: 0px;
+}
+
+.limit-weight-positive {
+  max-width: 50px;
+  background: #28865a;
+  color: wheat;
+  text-align: center;
+}
+
+.limit-weight-negative {
+  max-width: 50px;
+  background: #bf4343;
+  color: wheat;
+  text-align: center;
+}
+
+.limit-weight[disabled] {
+  background-color: gray;
+  opacity: 0.9;
 }
 
 body .div textarea:focus {
@@ -181,7 +255,7 @@ body .div button:focus {
 }
 
 footer {
-  position: absolute;
+  position: fixed;
   font-size: 12px;
   bottom: 0;
   width: 100%;
@@ -191,6 +265,7 @@ footer {
   background-color: #101820;
   color: #fff;
   text-align: center;
+  z-index: 500;
 }
 
 footer a {

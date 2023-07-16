@@ -1,0 +1,118 @@
+/**
+ * Developer: Bashar Astifan 2023
+ * Link: https://github.com/basharast
+ */
+
+.cm-operator {
+    color: #ccb32e;
+}
+.cm-operator-2 {
+    color: greenyellow;
+}
+
+.cm-decrease-1 {
+    color: #bf4343;
+}
+.cm-decrease-2 {
+    color: gray;
+}
+
+.cm-lora{
+    color: #ff28f4;
+}
+.cm-lora-file{
+    color: aqua;
+}
+
+.cm-negative-1 {
+    color: #bf4343;
+}
+.cm-negative-2 {
+    color: #c05b5b;
+}
+.cm-negative-3 {
+    color: #c98c74;
+}
+.cm-negative-4 {
+    color: #ce6666;
+}
+.cm-negative-5 {
+    color: #c27979;
+}
+.cm-negative-6 {
+    color: #c08d5d;
+}
+.cm-negative-7 {
+    color: #7c3950;
+}
+.cm-negative-8 {
+    color: #b68686;
+}
+.cm-negative-9 {
+    color: #bf434d;
+}
+.cm-negative-10 {
+    color: #9c9a93;
+}
+
+.cm-positive-1 {
+    color: #28865a;
+}
+.cm-positive-2 {
+    color: #286886;
+}
+.cm-positive-3 {
+    color: #a3841d;
+}
+.cm-positive-4 {
+    color: #7537bb;
+}
+.cm-positive-5 {
+    color: #52c991;
+}
+.cm-positive-6 {
+    color: #b9d346;
+}
+.cm-positive-7 {
+    color: #268bdd;
+}
+.cm-positive-8 {
+    color: #b83572;
+}
+.cm-positive-9 {
+    color: #36d879;
+}
+.cm-positive-10 {
+    color: #b2d4c4;
+}
+
+.cm-invoke-positive-1 {
+    color: #73833c;
+}
+.cm-invoke-positive-2 {
+    color: #447c69;
+}
+.cm-invoke-positive-3 {
+    color: #a58d4a;
+}
+.cm-invoke-positive-4 {
+    color: #b9679e;
+}
+.cm-invoke-positive-5 {
+    color: #88c0bb;
+}
+.cm-invoke-positive-6 {
+    color: #d8b990;
+}
+.cm-invoke-positive-7 {
+    color: #74b8c9;
+}
+.cm-invoke-positive-8 {
+    color: #b370a4;
+}
+.cm-invoke-positive-9 {
+    color: #bdd197;
+}
+.cm-invoke-positive-10 {
+    color: #74a3b1;
+}

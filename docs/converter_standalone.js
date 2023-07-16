@@ -78,6 +78,8 @@ function convertInvokeAIToAuto1111(inputPositive, inputNegative, ignoreNegativeP
 //This value suppose to be used with blending case when no weight added
 //also it will be used when input has syntax such as '[word]' (online docs says '[]' decrease the strength by a factor of 0.9)
 var defaultWeight = 0.91;
+var limitWeightPositive = "$1";
+var limitWeightNegative = "$1";
 
 //Main prompt syntax resolver table
 //Be aware that elements order is important, don't change it
@@ -103,7 +105,7 @@ var regexConversionTable = {
                     var fullMatch = match[0];
                     var innerMatch = match[1];
                     //Check if internal matched value has '|', 
-                    //afaik this usualy used or auto1111 to blend multiple elements
+                    //afaik this usualy used in auto1111 to blend multiple elements
                     if (innerMatch.indexOf("|") !== -1) {
                         var groups = innerMatch.split("|");
                         var outputElements = [];
@@ -151,10 +153,10 @@ var regexConversionTable = {
             //3rd phase: '((word)):weight'
             //4th phase: '(word):weight'
             //this can be simplified in much deeper regex check, but it works fine for now and it may help in other complicated cases
-            inputRegex: String.raw`!#([^)]+)#!(?![\-\+\d])\:([\d\.]+)`,
+            inputRegex: [String.raw`!#([^)]+)#!(?![\-\+\d])\:([\d\.]+)`, String.raw`!#([^)]+)(?![\-\+\d])\,\:([\d\.]+)#!`],
             //'outputRegex'->'string, regex' style
             outputRegex: "(($1)$2)@", //@ suppose to be replaced with one '+' or more based on check
-            outputNegativeRegex: "(($1)$2)!", //! suppose to be replaced with one '-' or more based on check
+            outputNegativeRegex: "(($1)$2)!", //! suppose to be replaced with one '+' or more based on check
             //Negative raw will be used when user choose to ignore (attention and weight)
             outputNegativeRawRegex: "$1",
             //This will activate 'recursiveCheck' process from 'loopCount' value to 0
@@ -168,10 +170,7 @@ var regexConversionTable = {
                     { target: "!#", replacement: String.raw`\(`, output: false },
                     { target: "#!", replacement: String.raw`\)`, output: false },
                     { target: "@", replacement: "+", output: true },
-                    //This part I'm not sure 100% from it, 
-                    //for somereason using '-' for negative prompts gives better results than '+'
-                    //using '+' in negative caused too many wrong results..
-                    { target: "!", replacement: "-", output: true },
+                    { target: "!", replacement: "+", output: true },
                 ]
             },
         },
@@ -182,7 +181,7 @@ var regexConversionTable = {
             inputRegex: String.raw`(?<!withLora)!#([^)(?!\\)]+)#!(?![\-\+\d])`,
             //'inputRegex, outputRegex'->'recursiveCheck' style
             outputRegex: "($1)@", //@ suppose to be replaced with one '+' or more based on check
-            outputNegativeRegex: "($1)!", //! suppose to be replaced with one '-' or more based on check
+            outputNegativeRegex: "($1)!", //! suppose to be replaced with one '+' or more based on check
             //Negative raw will be used when user choose to ignore (attention and weight)
             outputNegativeRawRegex: "$1",
             //This will activate 'recursiveCheck' process from 'loopCount' value to 0
@@ -196,12 +195,80 @@ var regexConversionTable = {
                     { target: "!#", replacement: String.raw`\(`, output: false },
                     { target: "#!", replacement: String.raw`\)`, output: false },
                     { target: "@", replacement: "+", output: true },
-                    //This part I'm not sure 100% from it, 
-                    //for somereason using '-' for negative prompts gives better results than '+'
-                    //using '+' in negative caused too many wrong results..
-                    { target: "!", replacement: "-", output: true },
+                    { target: "!", replacement: "+", output: true },
                 ]
             },
+        },
+        {
+            //Weight resolver
+            //This purely made based on test and not logic
+            //weight with values such as 2 is causing bad results
+            //it will be forced to custom value by user
+            inputRegex: [
+                function (negativeMatch = false) {
+                    var matchRegex = String.raw`\)(\d+(?:\.\d+)?)\)`;
+                    return matchRegex;
+                }, function (negativeMatch = false) {
+                    var matchRegex = String.raw`\:(\d+(?:\.\d+)?)`;
+                    return matchRegex;
+                }],
+            outputRegex: function (inputText, regexGroups) {
+                var limitedValue = limitWeightPositive;
+                if (limitedValue.indexOf("$1") === -1) {
+                    if (limitedValue.indexOf(".") !== -1) {
+                        var splitData = limitedValue.split(".");
+                        var first = splitData[0];
+                        if (splitData.length > 1 && [...splitData[1].matchAll(/\d+/g)].length) {
+                            limitedValue = limitWeightPositive;
+                        } else {
+                            limitedValue = first;
+                        }
+                    }
+                    for (const match of regexGroups) {
+                        var fullMatch = match[0];
+                        var innerMatch = match[1];
+                        if (parseFloat(innerMatch).toFixed(5) > parseFloat(limitedValue).toFixed(5)) {
+                            var replacement = fullMatch.replace(innerMatch, limitedValue);
+                            var innerMatchRegex = fullMatch;
+                            innerMatchRegex = innerMatchRegex.replace(/\)/g, String.raw`\)`);
+                            innerMatchRegex = String.raw`${innerMatchRegex}(?![\.\d])`;
+                            var regexExp = new RegExp(innerMatchRegex, 'g');
+                            inputText = inputText.replace(regexExp, replacement);
+                        }
+                    }
+                }
+                return inputText;
+            }, //Expected matches ':$1'
+            outputNegativeRegex: function (inputText, regexGroups) {
+                var limitedValue = limitWeightNegative;
+                if (limitedValue.indexOf("$1") === -1) {
+                    if (limitedValue.indexOf(".") !== -1) {
+                        var splitData = limitedValue.split(".");
+                        var first = splitData[0];
+                        if (splitData.length > 1 && [...splitData[1].matchAll(/\d+/g)].length) {
+                            limitedValue = limitWeightNegative;
+                        } else {
+                            limitedValue = first;
+                        }
+                    }
+                    for (const match of regexGroups) {
+                        var fullMatch = match[0];
+                        var innerMatch = match[1];
+                        if (parseFloat(innerMatch).toFixed(5) > parseFloat(limitedValue).toFixed(5)) {
+                            var replacement = fullMatch.replace(innerMatch, limitedValue);
+                            var innerMatchRegex = fullMatch;
+                            innerMatchRegex = innerMatchRegex.replace(/\)/g, String.raw`\)`);
+                            innerMatchRegex = String.raw`${innerMatchRegex}(?![\.\d])`;
+                            var regexExp = new RegExp(innerMatchRegex, 'g');
+                            inputText = inputText.replace(regexExp, replacement);
+                        }
+                    }
+                }
+                return inputText;
+            },
+            //Negative raw will be used when user choose to ignore (attention and weight)
+            outputNegativeRawRegex: ":$1",
+            recursiveCheck: false
         },
         {
             //LoRa
@@ -226,7 +293,7 @@ var regexConversionTable = {
         },
         {
             //Word with weight such as: 'word:weight'
-            inputRegex: String.raw`(?!\s)([a-zA-Z\s\_]+)[\s]{0,3}\:\s{0,3}([\d\.]+)`,
+            inputRegex: String.raw`(?!\s)([a-zA-Z\s\_\-\d]+)[\s]{0,3}\:\s{0,3}([\d\.]+)`,
             outputRegex: "($1)$2", //Expected matches '$1:$2'
             outputNegativeRegex: "($1)$2",
             //Negative raw will be used when user choose to ignore (attention and weight)
@@ -283,6 +350,25 @@ var regexConversionTable = {
             outputNegativeRawRegex: "$1",
             recursiveCheck: false
         },
+        {
+            //This regex for leftover cases
+            //so any resolved result ends with ')--:' will get fixed as below (very rare case)
+            inputRegex: String.raw`(\)[\+\-]+)\:`,
+            outputRegex: "$1", //Currently we remove ':', example: '..word)--:' will become '...word)--'
+            outputNegativeRegex: "$1",
+            //Negative raw will be used when user choose to ignore (attention and weight)
+            outputNegativeRawRegex: "$1",
+            recursiveCheck: false
+        },
+        {
+            //This regex for leftover cases, currently 'AND' will be replace with ':' which will allow to blend
+            inputRegex: String.raw`(\n)(AND)(\n)`,
+            outputRegex: "$1:$3",
+            outputNegativeRegex: "$1:$3",
+            //Negative raw will be used when user choose to ignore (attention and weight)
+            outputNegativeRawRegex: "$1$2$3",
+            recursiveCheck: false
+        }
     ],
     //From invokeai to auto1111 key
     //this part should cover most basic cases, still need more tests
@@ -411,20 +497,52 @@ function regexValueRecursiveReplace(input, regexPatternItem, ignoreNegativeParam
             });
 
             /* MATCH AND REPLACE */
-            var regexExp = new RegExp(inputRegexItem, 'g');
-            if (typeof patternOutput !== 'function') {
-                inputPositive = inputPositive.replace(regexExp, patternOutput);
+            var matchPositive = null;
+            var matchNegative = null;
+            if (typeof inputRegexItem === 'function') {
+                matchPositive = inputRegexItem();
+                matchNegative = inputRegexItem(true);
+            } else {
+                matchPositive = inputRegexItem;
+                matchNegative = inputRegexItem;
+            }
+            var regexExp = new RegExp(matchPositive, 'g');
+            var regexNegativeExp = new RegExp(matchNegative, 'g');
+
+            if (typeof patternOutput !== 'function' || patternOutput.toString().indexOf("regexGroups") === -1) {
+                if (typeof patternOutput !== 'function') {
+                    inputPositive = inputPositive.replace(regexExp, patternOutput);
+                } else {
+                    inputPositive = inputPositive.replace(regexExp, patternOutput());
+                }
                 if (!ignoreNegativeParameters) {
-                    inputNegative = inputNegative.replace(regexExp, patternNegativeOutput);
+                    if (typeof patternNegativeOutput !== 'function') {
+                        inputNegative = inputNegative.replace(regexNegativeExp, patternNegativeOutput);
+                    } else {
+                        if (patternNegativeOutput.toString().indexOf("regexGroups") === -1) {
+                            inputNegative = inputNegative.replace(regexNegativeExp, patternNegativeOutput());
+                        } else {
+                            const regexNegativeGroups = inputNegative.matchAll(inputRegexItem);
+                            inputNegative = patternNegativeOutput(inputNegative, regexNegativeGroups);
+                        }
+                    }
                 }
             } else {
                 //If 'patternOutput' is function then extract matched groups and pass them to the function
-                const regexGroups = inputPositive.matchAll(inputRegexItem);
+                const regexGroups = inputPositive.matchAll(matchPositive);
                 inputPositive = patternOutput(inputPositive, regexGroups);
 
-                const regexNegativeGroups = inputNegative.matchAll(inputRegexItem);
+                const regexNegativeGroups = inputNegative.matchAll(matchNegative);
                 if (!ignoreNegativeParameters) {
-                    inputNegative = patternOutput(inputNegative, regexNegativeGroups);
+                    if (typeof patternNegativeOutput === 'function') {
+                        if (patternNegativeOutput.toString().indexOf("regexGroups") === -1) {
+                            inputNegative = inputNegative.replace(regexNegativeExp, patternNegativeOutput());
+                        } else {
+                            inputNegative = patternNegativeOutput(inputNegative, regexNegativeGroups);
+                        }
+                    } else {
+                        inputNegative = patternOutput(inputNegative, regexNegativeGroups);
+                    }
                 }
             }
 
@@ -460,24 +578,56 @@ function regexValueReplace(input, regexPatternItem, ignoreNegativeParameters = f
 
     //Loop through all regex items
     inputRegexArray.forEach(function (inputRegexItem) {
-        var regexExp = new RegExp(inputRegexItem, 'g');
-        if (typeof patternOutput !== 'function') {
-            inputPositive = inputPositive.replace(regexExp, patternOutput);
+        var matchPositive = null;
+        var matchNegative = null;
+        if (typeof inputRegexItem === 'function') {
+            matchPositive = inputRegexItem();
+            matchNegative = inputRegexItem(true);
+        } else {
+            matchPositive = inputRegexItem;
+            matchNegative = inputRegexItem;
+        }
+        var regexExp = new RegExp(matchPositive, 'g');
+        var regexNegativeExp = new RegExp(matchNegative, 'g');
+
+        if (typeof patternOutput !== 'function' || patternOutput.toString().indexOf("regexGroups") === -1) {
+            if (typeof patternOutput !== 'function') {
+                inputPositive = inputPositive.replace(regexExp, patternOutput);
+            } else {
+                inputPositive = inputPositive.replace(regexExp, patternOutput());
+            }
             if (!ignoreNegativeParameters) {
-                inputNegative = inputNegative.replace(regexExp, patternNegativeOutput);
+                if (typeof patternNegativeOutput !== 'function') {
+                    inputNegative = inputNegative.replace(regexNegativeExp, patternNegativeOutput);
+                } else {
+                    if (patternNegativeOutput.toString().indexOf("regexGroups") === -1) {
+                        inputNegative = inputNegative.replace(regexNegativeExp, patternNegativeOutput());
+                    } else {
+                        const regexNegativeGroups = inputNegative.matchAll(inputRegexItem);
+                        inputNegative = patternNegativeOutput(inputNegative, regexNegativeGroups);
+                    }
+                }
             }
         } else {
             //If 'patternOutput' is function then extract matched groups and pass them to the function
-            const regexGroups = inputPositive.matchAll(inputRegexItem);
+            const regexGroups = inputPositive.matchAll(matchPositive);
             inputPositive = patternOutput(inputPositive, regexGroups);
             if (!ignoreNegativeParameters) {
-                const regexNegativeGroups = inputNegative.matchAll(inputRegexItem);
-                inputNegative = patternOutput(inputNegative, regexNegativeGroups);
+                const regexNegativeGroups = inputNegative.matchAll(matchNegative);
+                if (typeof patternNegativeOutput === 'function') {
+                    if (patternNegativeOutput.toString().indexOf("regexGroups") === -1) {
+                        inputNegative = inputNegative.replace(regexNegativeExp, patternNegativeOutput());
+                    } else {
+                        inputNegative = patternNegativeOutput(inputNegative, regexNegativeGroups);
+                    }
+                } else {
+                    inputNegative = patternOutput(inputNegative, regexNegativeGroups);
+                }
             }
         }
 
         if (ignoreNegativeParameters) {
-            inputNegative = inputNegative.replace(regexExp, patternNegativeRawOutput);
+            inputNegative = inputNegative.replace(regexNegativeExp, patternNegativeRawOutput);
         }
     });
 
@@ -531,6 +681,20 @@ function prepareOutput(simpleInput, originalPositive, originalNegative, invokeAI
     };
 
     return output;
+}
+
+function setLimitedWeight(positive, negative) {
+    if (positive !== null && [...positive.matchAll(/[\d\.]+/g)].length && positive > 0) {
+        limitWeightPositive = positive;
+    } else {
+        limitWeightPositive = String.raw`$1`;
+    }
+
+    if (negative !== null && [...positive.matchAll(/[\d\.]+/g)].length && negative > 0) {
+        limitWeightNegative = negative;
+    } else {
+        limitWeightNegative = String.raw`$1`;
+    }
 }
 
 /******************/
