@@ -24,6 +24,32 @@
     color: aqua;
 }
 
+.cm-color{
+    color: rgba(255, 127, 80, 0.637);
+}
+.cm-lighting{
+    color: rgba(245, 222, 179, 0.637);
+}
+.cm-material{
+    color: rgba(206, 155, 46, 0.658);
+}
+.cm-medium{
+    color: rgba(27, 85, 194, 0.658);
+}
+.cm-photography{
+    color: rgba(88, 194, 27, 0.658);
+}
+.cm-quality {
+    color: rgba(207, 140, 140, 0.658);
+}
+.cm-style {
+    color: rgba(206, 91, 190, 0.658);
+}
+.cm-subject {
+    color: rgba(204, 206, 91, 0.658);
+}
+
+
 .cm-negative-1 {
     color: #bf4343;
 }

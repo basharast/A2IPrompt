@@ -11,13 +11,15 @@ var autoCopyInvokeAI = false;
 var limitWeight = true;
 var defaultLimitWeightPositive = "1.1";
 var defaultLimitWeightNegative = "1.1";
+var invokeaiVersion = 2;
 
 var normalConversionInProgress = false;
 var reverseConversionInProgress = false;
 
 var auto1111PositiveCodeMirror = null;
 var auto1111NegativeCodeMirror = null;
-var invokeaiCodeMirror = null;
+var invokeaiPositiveCodeMirror = null;
+var invokeaiNegativeCodeMirror = null;
 
 function resolvePromptSyntax() {
     var inputPositive = "";
@@ -27,10 +29,11 @@ function resolvePromptSyntax() {
     if (!reverseConversion) {
         inputPositive = auto1111PositiveCodeMirror.getValue();
         inputNegative = auto1111NegativeCodeMirror.getValue();
-        finalOutput = convertAuto1111ToInvokeAI(inputPositive, inputNegative, ignoreNegativeParameters);
+        finalOutput = convertAuto1111ToInvokeAI(inputPositive, inputNegative, ignoreNegativeParameters, invokeaiVersion);
     } else {
-        inputPositive = invokeaiCodeMirror.getValue();
-        finalOutput = convertInvokeAIToAuto1111(inputPositive, inputNegative, ignoreNegativeParameters);
+        inputPositive = invokeaiPositiveCodeMirror.getValue();
+        inputNegative = invokeaiNegativeCodeMirror.getValue();
+        finalOutput = convertInvokeAIToAuto1111(inputPositive, inputNegative, ignoreNegativeParameters, invokeaiVersion);
     }
 
     var invokeai = finalOutput.to;
@@ -41,11 +44,8 @@ function resolvePromptSyntax() {
     }
 
     if (!reverseConversion) {
-        var invokeAIOutput = invokeai.positive.text.trim();
-        if (invokeai.negative.text.trim().length > 0) {
-            invokeAIOutput += "\n\n" + "[" + invokeai.negative.text.trim() + "]"
-        }
-        invokeaiCodeMirror.getDoc().setValue(invokeAIOutput);
+        invokeaiPositiveCodeMirror.getDoc().setValue(invokeai.positive.text.trim());
+        invokeaiNegativeCodeMirror.getDoc().setValue(invokeai.negative.text.trim());
         setTimeout(function () {
             normalConversionInProgress = false;
         }, 100);
@@ -85,13 +85,13 @@ $(document).ready(function () {
         scrollbarStyle: "simple"
     };
 
-    //CodeMirror InvokeAI
-    var invokeaiElement = $('#invokeai-prompt');
-    var invokeConfigs = mirrorConfigs;
-    invokeConfigs.placeholder = invokeaiElement.attr("placeholder");
-    invokeConfigs.mode = "prompt-invokeai";
-    invokeaiCodeMirror = CodeMirror.fromTextArea(invokeaiElement.get(0), invokeConfigs);
-    invokeaiCodeMirror.on("change", function (cm, change) {
+    //CodeMirror InvokeAI Positive
+    var invokeaiPositiveElement = $('#invokeai-positive');
+    var invokePositiveConfigs = mirrorConfigs;
+    invokePositiveConfigs.placeholder = invokeaiPositiveElement.attr("placeholder");
+    invokePositiveConfigs.mode = "prompt-positive";
+    invokeaiPositiveCodeMirror = CodeMirror.fromTextArea(invokeaiPositiveElement.get(0), invokePositiveConfigs);
+    invokeaiPositiveCodeMirror.on("change", function (cm, change) {
         if (!normalConversionInProgress) {
             if (allowReverseConversion) {
                 reverseConversion = true;
@@ -102,6 +102,26 @@ $(document).ready(function () {
                 var invokeAIInput = cm.getValue();
                 var tokensOutput = calculateInvokeAITokens(invokeAIInput);
                 $('#invokeai-tokens-positive').html(tokensOutput.positive.tokens);
+            }
+        }
+    });
+
+    //CodeMirror InvokeAI Negative
+    var invokeaiNegativeElement = $('#invokeai-negative');
+    var invokeNegativeConfigs = mirrorConfigs;
+    invokeNegativeConfigs.placeholder = invokeaiNegativeElement.attr("placeholder");
+    invokeNegativeConfigs.mode = "prompt-negative";
+    invokeaiNegativeCodeMirror = CodeMirror.fromTextArea(invokeaiNegativeElement.get(0), invokeNegativeConfigs);
+    invokeaiNegativeCodeMirror.on("change", function (cm, change) {
+        if (!normalConversionInProgress) {
+            if (allowReverseConversion) {
+                reverseConversion = true;
+                reverseConversionInProgress = true;
+                resolvePromptSyntax();
+            } else {
+                //Just calculate tokens
+                var invokeAIInput = cm.getValue();
+                var tokensOutput = calculateInvokeAITokens(invokeAIInput);
                 $('#invokeai-tokens-negative').html(tokensOutput.negative.tokens);
             }
         }
@@ -144,7 +164,9 @@ $(document).ready(function () {
     $('#auto-copy-check').prop('checked', autoCopyInvokeAI);
     $('#limit-weight-positive-value').val(defaultLimitWeightPositive);
     $('#limit-weight-negative-value').val(defaultLimitWeightNegative);
-
+    
+    //Set current version
+    invokeaiVersion = $("#invokeai-release").val();;
 
     //Attach checkboxes events
     $(".limit-weight").on("input", function () {
@@ -203,6 +225,15 @@ $(document).ready(function () {
         resolvePromptSyntax();
     });
 
+    //Attach invokeai version event
+    $('#invokeai-release').on('change', function (e) {
+        var optionSelected = $("option:selected", this);
+        var valueSelected = this.value;
+        invokeaiVersion = valueSelected;
+        reverseConversion = $('#reverse-check').is(':checked');
+        resolvePromptSyntax();
+    });
+
     //Attach copy events
     $('#copy-auto1111-positive, .input-label[target=auto1111-positive]').click(function () {
         var thisElement = $("#copy-auto1111-positive");
@@ -227,12 +258,16 @@ $(document).ready(function () {
     var totalClipboardCalls = 0;
     $('#copy-invokeai-prompt, .input-label-invoke').click(function () {
         var thisElement = $("#copy-invokeai-prompt");
-        var inputValue = invokeaiCodeMirror.getValue();
+        var invokeAIOutput =  invokeaiPositiveCodeMirror.getValue();
+        var inputNegative = invokeaiNegativeCodeMirror.getValue();
+        if (inputNegative.length > 0) {
+            invokeAIOutput += "\n\n" + "[" + inputNegative + "]"
+        }
         try {
             totalClipboardCalls++;
             setTimeout(function () {
                 if (totalClipboardCalls == 1) {
-                    navigator.clipboard.writeText(inputValue);
+                    navigator.clipboard.writeText(invokeAIOutput);
                     $('.copy-text-invokeai', thisElement).fadeIn("fast").css("display", "inline");
                     setTimeout(function () {
                         $('.copy-text-invokeai', thisElement).fadeOut();

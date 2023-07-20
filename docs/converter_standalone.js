@@ -25,17 +25,19 @@
     }
 */
 //Convert from automatic1111 to invokeai
-function convertAuto1111ToInvokeAI(inputPositive, inputNegative, ignoreNegativeParameters = false) {
+function convertAuto1111ToInvokeAI(inputPositive, inputNegative, ignoreNegativeParameters = false, invokeAIVersion = 2) {
     var input = {
         positive: inputPositive,
         negative: inputNegative
     };
 
+    invokeaiVersion = invokeAIVersion;
+
     var targetConversionTable = regexConversionTable.invokeAIRegexPatterns;
     targetConversionTable.forEach(regexPatternItem => {
         var patternRecursive = regexPatternItem.recursiveCheck;
         if (patternRecursive) {
-            input = regexValueRecursiveReplace(input, regexPatternItem, ignoreNegativeParameters);
+            input = regexValueRecursiveReplace(input, regexPatternItem, ignoreNegativeParameters, invokeAIVersion = 2);
         } else {
             input = regexValueReplace(input, regexPatternItem, ignoreNegativeParameters);
         }
@@ -50,7 +52,12 @@ function convertAuto1111ToInvokeAI(inputPositive, inputNegative, ignoreNegativeP
 function convertInvokeAIToAuto1111(inputPositive, inputNegative, ignoreNegativeParameters = false) {
     //It's expected to have negative values within input
     //so it's better to fetch them (if any)
-    inputNegative += fetchInvokeAINegatives(inputPositive);
+    if (invokeaiVersion < 3) {
+        //Version 2 only, 3 doesn't support that
+        inputNegative += fetchInvokeAINegatives(inputPositive);
+    }
+
+    invokeaiVersion = invokeAIVersion;
 
     var input = {
         positive: inputPositive,
@@ -80,6 +87,7 @@ function convertInvokeAIToAuto1111(inputPositive, inputNegative, ignoreNegativeP
 var defaultWeight = 0.91;
 var limitWeightPositive = "$1";
 var limitWeightNegative = "$1";
+var invokeaiVersion = 2;
 
 //Main prompt syntax resolver table
 //Be aware that elements order is important, don't change it
@@ -362,12 +370,19 @@ var regexConversionTable = {
         },
         {
             //This regex for leftover cases, currently 'AND' will be replace with ':' which will allow to blend
-            inputRegex: String.raw`(\n)(AND)(\n)`,
+            inputRegex: String.raw`(\n)\s{0,5}(AND)\s{0,5}(\n)`,
             outputRegex: "$1:$3",
             outputNegativeRegex: "$1:$3",
             //Negative raw will be used when user choose to ignore (attention and weight)
             outputNegativeRawRegex: "$1$2$3",
-            recursiveCheck: false
+            recursiveCheck: false,
+            v3: {
+                //`:` no longer work in v3 and I don't know what is the other option for now
+                outputRegex: "$1$2$3",
+                outputNegativeRegex: "$1$2$3",
+                //Negative raw will be used when user choose to ignore (attention and weight)
+                outputNegativeRawRegex: "$1$2$3",
+            }
         }
     ],
     //From invokeai to auto1111 key
@@ -458,6 +473,28 @@ function regexValueRecursiveReplace(input, regexPatternItem, ignoreNegativeParam
         patternOutput = regexPatternItem.outputRegex;
         patternNegativeOutput = regexPatternItem.outputNegativeRegex;
         patternNegativeRawOutput = regexPatternItem.outputNegativeRawRegex;
+
+        //Check if we have custom regex for current version
+        var versionKey = "v" + invokeaiVersion;
+        if (typeof regexPatternItem[versionKey] !== 'undefined') {
+            if (typeof regexPatternItem[versionKey]["inputRegex"] !== 'undefined') {
+                patternInput = regexPatternItem[versionKey]["inputRegex"];
+            }
+            if (typeof regexPatternItem[versionKey]["outputRegex"] !== 'undefined') {
+                patternOutput = regexPatternItem[versionKey]["outputRegex"];
+            }
+            if (typeof regexPatternItem[versionKey]["outputNegativeRegex"] !== 'undefined') {
+                patternNegativeOutput = regexPatternItem[versionKey]["outputNegativeRegex"];
+            }
+            if (typeof regexPatternItem[versionKey]["outputNegativeRawRegex"] !== 'undefined') {
+                patternNegativeRawOutput = regexPatternItem[versionKey]["outputNegativeRawRegex"];
+            }
+            if (typeof regexPatternItem[versionKey]["replacementsMap"] !== 'undefined') {
+                replacementsMap = regexPatternItem[versionKey]["replacementsMap"];
+                loopCount = replacementsMap.loopCount;
+                replacements = replacementsMap.replacements;
+            }
+        }
 
         //Expected to be one string regex value, 
         //it will be made as array with 1 element by default
@@ -566,6 +603,23 @@ function regexValueReplace(input, regexPatternItem, ignoreNegativeParameters = f
     var patternOutput = regexPatternItem.outputRegex;
     var patternNegativeOutput = regexPatternItem.outputNegativeRegex;
     var patternNegativeRawOutput = regexPatternItem.outputNegativeRawRegex;
+
+    //Check if we have custom regex for current version
+    var versionKey = "v" + invokeaiVersion;
+    if (typeof regexPatternItem[versionKey] !== 'undefined') {
+        if (typeof regexPatternItem[versionKey]["inputRegex"] !== 'undefined') {
+            patternInput = regexPatternItem[versionKey]["inputRegex"];
+        }
+        if (typeof regexPatternItem[versionKey]["outputRegex"] !== 'undefined') {
+            patternOutput = regexPatternItem[versionKey]["outputRegex"];
+        }
+        if (typeof regexPatternItem[versionKey]["outputNegativeRegex"] !== 'undefined') {
+            patternNegativeOutput = regexPatternItem[versionKey]["outputNegativeRegex"];
+        }
+        if (typeof regexPatternItem[versionKey]["outputNegativeRawRegex"] !== 'undefined') {
+            patternNegativeRawOutput = regexPatternItem[versionKey]["outputNegativeRawRegex"];
+        }
+    }
 
     //Expected to be one string regex value, 
     //it will be made as array with 1 element by default
@@ -737,7 +791,10 @@ function calculateTokens(inputValue, invokeAI = false) {
 function calculateInvokeAITokens(inputPositive, inputNegative = "") {
     //It's expected to have negative values within input
     //so it's better to fetch them (if any)
-    inputNegative += fetchInvokeAINegatives(inputPositive);
+    if (invokeaiVersion < 3) {
+        //Version 2 only, 3 doesn't support that
+        inputNegative += fetchInvokeAINegatives(inputPositive);
+    }
     //Clean input positive from any 'negative' or new lines
     var cleanupRegex = [String.raw`\[([^\]]+)\]`, String.raw`\n`];
     cleanupRegex.forEach(element => {

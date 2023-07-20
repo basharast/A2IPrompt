@@ -40,7 +40,7 @@
 
 <body>
     <div class="div">
-        <table>
+        <table style="width: 100%;">
             <!-- Auto1111 Header -->
             <tr style="margin-bottom: -6px;margin-top: 10px;">
                 <th style="width: 50%;display: inline-flex;">
@@ -87,7 +87,8 @@
                 </th>
             </tr>
             <!-- Auto1111 Tokens -->
-            <tr style="text-align: center;margin-top: -25px;z-index: 100;position: absolute;left: 0;right: 0;margin-left: auto;width: 100px;margin-right: auto;">
+            <tr
+                style="text-align: center;margin-top: -25px;z-index: 100;position: absolute;left: 0;right: 0;margin-left: auto;width: 100px;margin-right: auto;">
                 <th style="margin-right: -5px;">
                     <p class="auto1111-tokens-a" id="auto1111-tokens-positive">0</p>
                 </th>
@@ -99,7 +100,7 @@
                 <!-- InvokeAI Header -->
                 <th colspan="2">
                     <label class="input-label-invoke" style="color: #ccb32e;"
-                        data-tippy-content="Click to copy">invokeAI (Prompt)
+                        data-tippy-content="Click to copy (positive + negative)">invokeAI (Prompt)
                         <a class="invokeai-copy" id="copy-invokeai-prompt">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -111,55 +112,71 @@
                             <p class="copy-text-invokeai">Prompt copied</p>
                         </a>
                     </label>
+                    <select class="invokeai-release" id="invokeai-release" data-tippy-content="InvokeAI Version">
+                        <option value="2">Version 2</option>
+                        <option value="3">Version 3</option>
+                    </select>
                 </th>
             </tr>
             <tr style="width: 100%;">
                 <!-- InvokeAI TextArea -->
-                <th colspan="2">
-                    <textarea class="prompt-input-reversed invokeai-input" id="invokeai-prompt"
-                        placeholder="invokeAI (Prompt)" rows="5"></textarea>
+                <th>
+                    <textarea class="prompt-input-reversed invokeai-input" id="invokeai-positive"
+                        placeholder="invokeAI (Positive)" rows="5"></textarea>
+
+                </th>
+                <th>
+                    <textarea class="prompt-input-reversed invokeai-input" id="invokeai-negative"
+                        placeholder="invokeAI (Negative)" rows="5"></textarea>
 
                 </th>
             </tr>
-            <tr style="margin-top: -30px;z-index: 100;position: absolute;right: 34px;">
+            <tr
+                style="text-align: center;margin-top: -25px;z-index: 100;position: absolute;left: 0;right: 0;margin-left: auto;width: 100px;margin-right: auto;">
                 <!-- InvokeAI Tokens -->
                 <th style="margin-right: -5px;">
-                    <p class="invokeai-tokens-b" id="invokeai-tokens-positive">0</p>
+                    <p class="invokeai-tokens-a" id="invokeai-tokens-positive">0</p>
                 </th>
                 <th>
-                    <p class="invokeai-tokens-a" id="invokeai-tokens-negative">0</p>
+                    <p class="invokeai-tokens-b" id="invokeai-tokens-negative">0</p>
                 </th>
             </tr>
         </table>
 
         <br />
         <div class="options">
-            <div class="options-check" data-tippy-content="Allow conversion from invokeai to auto1111">
-                <input class="checkbox-input" type="checkbox" id="reverse-check">
-                <label class="checkbox-label" for="reverse-check">Invokeai to auto1111</label>
-            </div>
-            <div class="options-check" data-tippy-content="Ignore negative's weight and attention">
-                <input class="checkbox-input" type="checkbox" id="raw-negative-check">
-                <label class="checkbox-label" for="raw-negative-check">Ignore Negative (params)</label>
-            </div>
-            <div class="options-check" data-tippy-content="Auto copy invokeai prompt to clipboard">
-                <input class="checkbox-input" type="checkbox" id="auto-copy-check">
-                <label class="checkbox-label" for="auto-copy-check">Auto copy (invokeai)</label>
-            </div>
-            <br />
-            <div class="options-check" data-tippy-content="Limit weight to custom value">
-                <input class="checkbox-input" type="checkbox" id="limit-weight-check">
-                <label class="checkbox-label" for="limit-weight-check">Max weight: </label>
-                <input class="limit-weight limit-weight-positive" id="limit-weight-positive-value" type="text" />
-                <input class="limit-weight limit-weight-negative" id="limit-weight-negative-value" type="text" />
-                <p style="display: inline;">(Set to 0 for original value)</p>
-            </div>
+            <table>
+                <tr>
+                    <div class="options-check" data-tippy-content="Allow conversion from invokeai to auto1111">
+                        <input class="checkbox-input" type="checkbox" id="reverse-check">
+                        <label class="checkbox-label" for="reverse-check">Invokeai to auto1111</label>
+                    </div>
+                    <div class="options-check" data-tippy-content="Ignore negative's weight and attention">
+                        <input class="checkbox-input" type="checkbox" id="raw-negative-check">
+                        <label class="checkbox-label" for="raw-negative-check">Ignore Negative (params)</label>
+                    </div>
+                    <div class="options-check" data-tippy-content="Auto copy invokeai prompt to clipboard">
+                        <input class="checkbox-input" type="checkbox" id="auto-copy-check">
+                        <label class="checkbox-label" for="auto-copy-check">Auto copy (invokeai)</label>
+                    </div>
+                </tr>
+                <tr>
+                    <div class="options-check" data-tippy-content="Limit weight to custom value">
+                        <input class="checkbox-input" type="checkbox" id="limit-weight-check">
+                        <label class="checkbox-label" for="limit-weight-check">Max weight: </label>
+                        <input class="limit-weight limit-weight-positive" id="limit-weight-positive-value"
+                            type="text" />
+                        <input class="limit-weight limit-weight-negative" id="limit-weight-negative-value"
+                            type="text" />
+                        <p style="display: inline;">(0 = original value)</p>
+                    </div>
+                </tr>
+            </table>
         </div>
     </div>
     <footer id="page-footer">
         <div class="footer-copyright text-center">&copy; Developed with ❤️</i> by
-            <a href="https://github.com/basharast" class="white-text" target="_blank">Bashar Astifan</a>. <a
-                href="https://paypal.me/astifan" target="_blank">Dontate (PayPal)</a>
+            <a href="https://github.com/basharast" class="white-text" target="_blank">Bashar Astifan</a>.
         </div>
     </footer>
 </body>

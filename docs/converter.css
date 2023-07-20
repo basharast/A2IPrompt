@@ -27,6 +27,7 @@ body .div {
   box-shadow: 10px 10px #C4A816;
   position: absolute;
   top: 3%;
+  width: 52.5%;
 }
 
 body .div textarea,
@@ -38,8 +39,8 @@ body .div textarea,
   font-size: 15px;
   border-radius: 10px;
   box-shadow: 5px 5px #CCB32E;
-  width: 350px;
-  height: 250px !important;
+  width: 100%;
+  height: 240px !important;
   scrollbar-width: thin;
 }
 
@@ -65,7 +66,7 @@ tr {
 }
 
 th {
-  display: inline;
+  display: contents;
 }
 
 .options {
@@ -82,10 +83,6 @@ th {
   width: 100% !important;
 }
 
-.invokeai-input~.CodeMirror {
-  width: 727px;
-}
-
 .CodeMirror-placeholder {
   color: gray !important;
 }
@@ -95,6 +92,10 @@ th {
   background-color: #222122 !important;
   color: white;
   text-align: left;
+}
+
+.cm-s-night.CodeMirror {
+  margin-right: 10px;
 }
 
 .CodeMirror-simplescroll-horizontal,
@@ -148,6 +149,7 @@ th {
   cursor: pointer;
   margin-left: 3px;
   position: absolute;
+  margin-top: 2px;
 }
 
 .copy-text {
@@ -196,19 +198,6 @@ th {
 }
 
 .invokeai-tokens-a {
-  background: #bf4343;
-  min-width: 50px;
-  min-height: 22px;
-  border-radius: 9px;
-  border-top-left-radius: 9px;
-  border-bottom-left-radius: 9px;
-  text-align: center;
-  padding-top: 4px;
-  border-bottom-left-radius: 0px;
-  border-top-left-radius: 0px;
-}
-
-.invokeai-tokens-b {
   background: #28865a;
   min-width: 50px;
   min-height: 22px;
@@ -221,11 +210,53 @@ th {
   border-top-right-radius: 0px;
 }
 
+.invokeai-tokens-b {
+  background: #bf4343;
+  min-width: 50px;
+  min-height: 22px;
+  border-radius: 9px;
+  border-top-left-radius: 9px;
+  border-bottom-left-radius: 9px;
+  text-align: center;
+  padding-top: 4px;
+  border-bottom-left-radius: 0px;
+  border-top-left-radius: 0px;
+}
+
+.invokeai-release {
+  margin-left: 25px;
+  background: transparent;
+  border-radius: 5px;
+  color: #ccb32e;
+  font-weight: bold;
+  border: solid 1px;
+  cursor: pointer;
+  width: 85px;
+}
+
+select > option {
+  color: #101820;
+  cursor: pointer;
+}
+
+@media screen and (-webkit-min-device-pixel-ratio:0) {
+
+  .invokeai-tokens-b,
+  .invokeai-tokens-a,
+  .auto1111-tokens-b,
+  .auto1111-tokens-a {
+    margin-top: 0px !important;
+  }
+}
+
 .limit-weight-positive {
   max-width: 50px;
   background: #28865a;
   color: wheat;
   text-align: center;
+  height: 20px;
+  border-radius: 5px;
+  border: 1px solid;
 }
 
 .limit-weight-negative {
@@ -233,6 +264,9 @@ th {
   background: #bf4343;
   color: wheat;
   text-align: center;
+  height: 20px;
+  border-radius: 5px;
+  border: 1px solid;
 }
 
 .limit-weight[disabled] {
@@ -276,4 +310,16 @@ footer a {
 
 footer a:hover {
   border-bottom: 1px transparent;
+}
+
+@media screen and (max-width: 980px) {
+  body .div {
+    width: 95% !important; 
+  }
+}
+
+@media screen and (min-width: 980px) and (max-width: 1320px) {
+  body .div {
+    width: 75% !important; 
+  }
 }

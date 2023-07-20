@@ -38,6 +38,38 @@ CodeMirror.defineSimpleMode("prompt-positive", {
             regex: /(lyco:)(.*?:)/,
             token: ["lora", "lora-file"]
         },
+        {
+            regex: /(?<!\w)(bright|colorful|cool|dark|deep|dusky|light|warm|iridescent|translucent)(?!\w)/,
+            token: "color"
+        },
+        {
+            regex: /(?<!\w)(candlelight|cinematic lighting|fire light|diffused|dramatic|soft lighting|neon lights|reflection|refraction|volumetric lighting)(?!\w)/,
+            token: "lighting"
+        },
+        {
+            regex: /(?<!\w)(brass|crystal|earth|glass|iron|magma|marble|porcelain|wood)(?!\w)/,
+            token: "material"
+        },
+        {
+            regex: /(?<!\w)(3d render|digital illustration|oil painting|pastel drawing|pencil sketch|pen and ink|sculpture|watercolor painting)(?!\w)/,
+            token: "medium"
+        },
+        {
+            regex: /(?<!\w)(backlighting|bloom|bokeh|broad light|chromatic aberration|shallow|deep depth of field|depth of field|fish-eye|smooth|sharp|shallow focus|god rays, sun rays, sun shafts|HDR|RAW color|wide-angle|tilt-shift|tone-mapped)(?!\w)/,
+            token: "photography"
+        },
+        {
+            regex: /(?<!\w)(4k|8k|exquisite|fine detail|best quality|low quality|highly detailed|masterpiece|Octane render|realistic|Unreal Engine)(?!\w)/,
+            token: "quality"
+        },
+        {
+            regex: /(?<!\w)(abstract|art nouveau|classical|gothic|graffiti|hyperrealism|modernism|realistic|surreal|photorealistic)(?!\w)/,
+            token: "style"
+        },
+        {
+            regex: /(?<!\w)(ancient|cyberpunk|futuristic|isometric|lush|medieval)(?!\w)/,
+            token: "subject"
+        },
         // Rules are matched in the order in which they appear, so there is
         // no ambiguity between this one and the one above
         {
