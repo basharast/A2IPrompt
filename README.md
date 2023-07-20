@@ -23,9 +23,13 @@ or download this repo and open `index.html` it will work locally.
 
 ## Features 
 
+- Support InvokeAI (V2 and V3)
+
 - Support wide conversion cases
 
 - Support translation from invokeai to automatic1111
+
+- Fetch prompt from online image
 
 - Copy shortcuts
 
