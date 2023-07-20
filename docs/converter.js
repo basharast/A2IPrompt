@@ -183,6 +183,7 @@ $(document).ready(function () {
     $('#auto-copy-check').prop('checked', autoCopyInvokeAI);
     $('#limit-weight-positive-value').val(defaultLimitWeightPositive);
     $('#limit-weight-negative-value').val(defaultLimitWeightNegative);
+    $("#remote-image-link").val("");
 
     //Set current version
     invokeaiVersion = $("#invokeai-release").val();
@@ -340,4 +341,113 @@ $(document).ready(function () {
             }
         }
     });
+
+    //Remote image event
+    //Attach checkboxes events
+    $("#remote-image-link").on("input", function () {
+        var onlineImageElement = $("#remote-image-link");
+        var onlineImageContainer = $("#online-image-container");
+        var link = onlineImageElement.val();
+        onlineImageElement.removeClass("correct");
+        onlineImageElement.removeClass("wrong");
+        onlineImageContainer.attr("data-tippy-content", "Get prompt from online image");
+        if (link.length > 0) {
+            FetchRemoteImagePrompt(link);
+        }
+    });
 });
+
+function FetchRemoteImagePrompt(imageLink) {
+    var onlineImageElement = $("#remote-image-link");
+    var onlineImageContainer = $("#online-image-container");
+    if (typeof imageLink !== 'undefined' && imageLink.indexOf("http") !== -1 && imageLink.indexOf("images/") !== -1) {
+        var loaderElement = $("#online-image-loader");
+
+        loaderElement.fadeIn("fast").css("display", "inline-block");
+        onlineImageElement.prop('disabled', true);
+        var regex = /(.*)(images\/)(\d+).*/;
+        var imageID = imageLink.replace(regex, "$3");
+        var siteLink = imageLink.replace(regex, "$1");
+        var expectedAPI = siteLink + "api/v1/images?imageId=" + imageID;
+        auto1111PositiveCodeMirror.getDoc().setValue("");
+        auto1111NegativeCodeMirror.getDoc().setValue("");
+        setTimeout(function () {
+            try {
+                var xhr = new XMLHttpRequest();
+                xhr.open("GET", expectedAPI, false);
+                xhr.setRequestHeader("Content-type", "application/json");
+                xhr.onload = function (e) {
+                    if (xhr.readyState === 4) {
+                        if (xhr.status === 200) {
+                            var responseFullData = xhr.responseText;
+                            var jsonResult = responseFullData;
+                            try {
+                                jsonResult = JSON.parse(responseFullData);
+                            } catch (exj) {
+
+                            }
+                            if (jsonResult != null && typeof jsonResult["items"] !== 'undefined' && typeof jsonResult["items"][0] !== 'undefined') {
+                                var targetImage = jsonResult["items"][0];
+                                if (typeof targetImage["meta"] !== 'undefined') {
+                                    var imageMeta = targetImage["meta"];
+                                    var fetchedPositive = typeof imageMeta["prompt"] !== 'undefined' ? imageMeta["prompt"] : "";
+                                    var fetchedNegative = typeof imageMeta["negativePrompt"] !== 'undefined' ? imageMeta["negativePrompt"] : "";
+
+                                    if ((fetchedPositive != null && fetchedPositive.length) > 0 || (fetchedNegative != null && fetchedNegative.length) > 0) {
+                                        if (fetchedPositive != null && fetchedPositive.length > 0) {
+                                            auto1111PositiveCodeMirror.getDoc().setValue(fetchedPositive);
+                                        }
+                                        if (fetchedNegative != null && fetchedNegative.length > 0) {
+                                            auto1111NegativeCodeMirror.getDoc().setValue(fetchedNegative);
+                                        }
+                                        onlineImageElement.addClass("correct");
+                                        onlineImageContainer.attr("data-tippy-content", "Prompt found and fetched");
+                                    } else {
+                                        onlineImageElement.addClass("wrong");
+                                        onlineImageContainer.attr("data-tippy-content", "Image doesn't have prompts");
+                                    }
+                                } else {
+                                    onlineImageElement.addClass("wrong");
+                                    onlineImageContainer.attr("data-tippy-content", "Images doesn't have meta data");
+                                }
+                            } else {
+                                onlineImageElement.addClass("wrong");
+                                onlineImageContainer.attr("data-tippy-content", "Response doesn't contain valid data");
+                            }
+                        } else {
+                            onlineImageElement.addClass("wrong");
+                            onlineImageContainer.attr("data-tippy-content", "Request failed, check console log");
+                        }
+                    }
+                };
+                xhr.onerror = function (e) {
+                    onlineImageElement.addClass("wrong");
+                    onlineImageContainer.attr("data-tippy-content", e.message);
+                };
+
+                xhr.onabort = function (e) {
+                    onlineImageElement.addClass("wrong");
+                    onlineImageContainer.attr("data-tippy-content", e.message);
+                };
+
+                xhr.ontimeout = function (e) {
+                    onlineImageElement.addClass("wrong");
+                    onlineImageContainer.attr("data-tippy-content", e.message);
+                };
+
+                xhr.send();
+
+
+                onlineImageElement.prop('disabled', false);
+                loaderElement.fadeOut("fast");
+            } catch (ex) {
+                console.warn(ex);
+                onlineImageElement.prop('disabled', false);
+                loaderElement.fadeOut("fast");
+            }
+        }, 500);
+    } else {
+        onlineImageElement.addClass("wrong");
+        onlineImageContainer.attr("data-tippy-content", "This link is not valid or not supported");
+    }
+}

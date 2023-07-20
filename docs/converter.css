@@ -241,9 +241,57 @@ th {
   width: 85px;
 }
 
-select > option {
+select>option {
   color: #101820;
   cursor: pointer;
+}
+
+.online-image {
+  background: transparent;
+  color: white;
+  border-radius: 5px;
+  border: 1px solid tan;
+}
+
+.online-image.wrong {
+  background: transparent;
+  color: rgb(192, 46, 46);
+  border: 1px solid rgb(218, 68, 49);
+}
+
+.online-image.correct {
+  background: transparent;
+  color: rgb(70, 192, 46);
+  border: 1px solid rgb(139, 218, 49);
+}
+
+.online-image[disabled]{
+  background: gray;
+  opacity: 0.7;
+}
+
+.loader {
+  border-radius: 50%;
+  animation: spin 2s linear infinite;
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border: 3px solid #f3f3f3;
+  border-top-color: rgb(243, 243, 243);
+  border-top-style: solid;
+  border-top-width: 3px;
+  border-top: 3px solid #ccb32e;
+  margin-bottom: -3px;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 @media screen and (-webkit-min-device-pixel-ratio:0) {
@@ -321,12 +369,12 @@ footer a:hover {
 
 @media screen and (max-width: 980px) {
   body .div {
-    width: 95% !important; 
+    width: 95% !important;
   }
 }
 
 @media screen and (min-width: 980px) and (max-width: 1320px) {
   body .div {
-    width: 75% !important; 
+    width: 75% !important;
   }
 }

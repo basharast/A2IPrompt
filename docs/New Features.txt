@@ -1,3 +1,4 @@
+- Fetch prompt from online image
 - Prompt syntax highlights
 - Auto prompt copy
 - Weight limiters
