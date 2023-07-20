@@ -37,7 +37,7 @@ function convertAuto1111ToInvokeAI(inputPositive, inputNegative, ignoreNegativeP
     targetConversionTable.forEach(regexPatternItem => {
         var patternRecursive = regexPatternItem.recursiveCheck;
         if (patternRecursive) {
-            input = regexValueRecursiveReplace(input, regexPatternItem, ignoreNegativeParameters, invokeAIVersion = 2);
+            input = regexValueRecursiveReplace(input, regexPatternItem, ignoreNegativeParameters);
         } else {
             input = regexValueReplace(input, regexPatternItem, ignoreNegativeParameters);
         }
@@ -49,7 +49,7 @@ function convertAuto1111ToInvokeAI(inputPositive, inputNegative, ignoreNegativeP
 }
 
 //Convert from invokeai to automatic1111
-function convertInvokeAIToAuto1111(inputPositive, inputNegative, ignoreNegativeParameters = false) {
+function convertInvokeAIToAuto1111(inputPositive, inputNegative, ignoreNegativeParameters = false, invokeAIVersion = 2) {
     //It's expected to have negative values within input
     //so it's better to fetch them (if any)
     if (invokeaiVersion < 3) {
