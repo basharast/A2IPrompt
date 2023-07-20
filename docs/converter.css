@@ -152,6 +152,13 @@ th {
   margin-top: 2px;
 }
 
+.invokeai-copy-b {
+  cursor: pointer;
+  position: absolute;
+  margin-left: 5px;
+  margin-top: 2px;
+}
+
 .copy-text {
   font-size: 13px;
   color: greenyellow;

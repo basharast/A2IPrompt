@@ -85,9 +85,9 @@ CodeMirror.defineSimpleMode("prompt-positive", {
         { regex: /\/(?:[^\\]|\\.)*?\//, token: "variable-3" },
         // A next property will cause the mode to move to a different state
         { regex: /\/\*/, token: "comment", next: "comment" },
-        { regex: /[-+\/*=<>!]+/, token: "operator" },
-        { regex: /[\(\)]+/, token: "operator-2" },
-        { regex: /[\[\]]+/, token: "decrease-1" },
+        { regex: /[\/*=<>!]+/, token: "operator" },
+        { regex: /[\(\)\+]+/, token: "operator-2" },
+        { regex: /[\[\]\-]+/, token: "decrease-1" },
         { regex: /[a-zA-Z][a-zA-Z0-9]*/, token: getRandomPositiveColor },
         // indent and dedent properties guide autoindentation
         { regex: /[\{\[\(]/, indent: true },

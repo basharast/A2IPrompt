@@ -70,6 +70,25 @@ function calculateTokensCount(invokeai, auto1111) {
     $('#auto1111-tokens-negative').html(auto1111.negative.tokens);
 }
 
+function resolveInvokeAICopy(startup = false) {
+    var positiveCopy = $(".input-label-invoke[target=invokeai-positive]");
+    var negativeCopy = $(".input-label-invoke[target=invokeai-negative]");
+    var positiveLabel = $("#invokeai-positive-label");
+    if (invokeaiVersion > 2) {
+        if (startup) {
+            negativeCopy.show();
+        } else {
+            negativeCopy.fadeIn("fast");
+        }
+        positiveLabel.html("invokeAI (Positive)");
+        positiveCopy.attr("data-tippy-content", "Click to copy");
+    } else {
+        negativeCopy.fadeOut("fast");
+        positiveLabel.html("invokeAI (Prompt)");
+        positiveCopy.attr("data-tippy-content", "Click to copy (positive + negative)");
+    }
+}
+
 //Page events
 $(document).ready(function () {
 
@@ -164,9 +183,10 @@ $(document).ready(function () {
     $('#auto-copy-check').prop('checked', autoCopyInvokeAI);
     $('#limit-weight-positive-value').val(defaultLimitWeightPositive);
     $('#limit-weight-negative-value').val(defaultLimitWeightNegative);
-    
+
     //Set current version
-    invokeaiVersion = $("#invokeai-release").val();;
+    invokeaiVersion = $("#invokeai-release").val();
+    resolveInvokeAICopy(true);
 
     //Attach checkboxes events
     $(".limit-weight").on("input", function () {
@@ -230,6 +250,7 @@ $(document).ready(function () {
         var optionSelected = $("option:selected", this);
         var valueSelected = this.value;
         invokeaiVersion = valueSelected;
+        resolveInvokeAICopy();
         reverseConversion = $('#reverse-check').is(':checked');
         resolvePromptSyntax();
     });
@@ -256,12 +277,15 @@ $(document).ready(function () {
     });
 
     var totalClipboardCalls = 0;
-    $('#copy-invokeai-prompt, .input-label-invoke').click(function () {
+    $('#copy-invokeai-prompt, .input-label-invoke[target=invokeai-positive]').click(function () {
         var thisElement = $("#copy-invokeai-prompt");
-        var invokeAIOutput =  invokeaiPositiveCodeMirror.getValue();
-        var inputNegative = invokeaiNegativeCodeMirror.getValue();
-        if (inputNegative.length > 0) {
-            invokeAIOutput += "\n\n" + "[" + inputNegative + "]"
+        var invokeAIOutput = invokeaiPositiveCodeMirror.getValue();
+        if (invokeaiVersion < 3) {
+            //This works only with version 2, 3 no longer detects negative prompts in positive input
+            var inputNegative = invokeaiNegativeCodeMirror.getValue();
+            if (inputNegative.length > 0) {
+                invokeAIOutput += "\n\n" + "[" + inputNegative + "]"
+            }
         }
         try {
             totalClipboardCalls++;
@@ -281,11 +305,27 @@ $(document).ready(function () {
         }
     });
 
+    $('#copy-invokeai-negative, .input-label-invoke[target=invokeai-negative]').click(function () {
+        var thisElement = $("#copy-invokeai-negative");
+        var inputNegative = invokeaiNegativeCodeMirror.getValue();
+        navigator.clipboard.writeText(inputNegative);
+        $('.copy-text', thisElement).fadeIn("fast").css("display", "inline");
+        setTimeout(function () {
+            $('.copy-text', thisElement).fadeOut();
+        }, 2500);
+    });
+
     //Call resolve after page load
     setTimeout(resolvePromptSyntax(), 500);
 
     //Attach tooltips
-    tippy('[data-tippy-content]');
+    tippy('[data-tippy-content]', {
+        allowHTML: true,
+        onShown(instance) {
+            let cont = instance.reference.dataset.tippyContent;
+            instance.setContent(cont);
+        },
+    });
 
     //Scroll event
     $(window).bind('scroll', function () {

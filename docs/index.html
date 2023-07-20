@@ -98,9 +98,9 @@
             </tr>
             <tr style="padding-top: 20px;margin-left: 5px;">
                 <!-- InvokeAI Header -->
-                <th colspan="2">
-                    <label class="input-label-invoke" style="color: #ccb32e;"
-                        data-tippy-content="Click to copy (positive + negative)">invokeAI (Prompt)
+                <th style="width: 50%;display: inline-flex;">
+                    <label class="input-label-invoke" target="invokeai-positive" style="color: #ccb32e;"
+                        data-tippy-content="Click to copy (positive + negative)"><p id="invokeai-positive-label" style="display: inline;">invokeAI (Prompt)</p>
                         <a class="invokeai-copy" id="copy-invokeai-prompt">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -116,6 +116,21 @@
                         <option value="2">Version 2</option>
                         <option value="3">Version 3</option>
                     </select>
+                </th>
+                <th style="display: inline-flex;">
+                    <label class="input-label-invoke" target="invokeai-negative" style="color: #bf5a43;display: none;"
+                        data-tippy-content="Click to copy">invokeAI (Negative)
+                        <a class="invokeai-copy-b" id="copy-invokeai-negative">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="tabler-icon tabler-icon-copy">
+                                <path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z">
+                                </path>
+                                <path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path>
+                            </svg>
+                            <p class="copy-text">Prompt copied</p>
+                        </a>
+                    </label>
                 </th>
             </tr>
             <tr style="width: 100%;">
@@ -146,6 +161,7 @@
         <br />
         <div class="options">
             <table>
+                <!-- Below is not correct as HTML but for now it's fine and responsive -->
                 <tr>
                     <div class="options-check" data-tippy-content="Allow conversion from invokeai to auto1111">
                         <input class="checkbox-input" type="checkbox" id="reverse-check">
@@ -176,7 +192,7 @@
     </div>
     <footer id="page-footer">
         <div class="footer-copyright text-center">&copy; Developed with ❤️</i> by
-            <a href="https://github.com/basharast" class="white-text" target="_blank">Bashar Astifan</a>.
+            <a href="https://github.com/basharast" class="white-text" target="_blank">Bashar Astifan</a>, <a href="https://github.com/invoke-ai/InvokeAI/discussions/3680" class="white-text" target="_blank">Discussions</a>
         </div>
     </footer>
 </body>
