@@ -476,9 +476,9 @@ var regexConversionTable = {
             //Many uncalculated cases may cause ':' which will cause blend and break the output
             inputRegex: String.raw`\:`,
             outputRegex: ",", //It's safe to replace it with ',' for now
-            outputNegativeRegex: "",
+            outputNegativeRegex: ",",
             //Negative raw will be used when user choose to ignore (attention and weight)
-            outputNegativeRawRegex: "",
+            outputNegativeRawRegex: ",",
             recursiveCheck: false
         },
         {
