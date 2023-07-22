@@ -376,7 +376,7 @@ var regexConversionTable = {
         },
         {
             //Word with weight such as: 'word:weight'
-            inputRegex: [String.raw`(?!\s)\{\{([a-zA-Z\s\_\-\d]{2,50})[\s]{0,3}\:\s{0,3}([\d\.]+)\}\}`, String.raw`(?!\s)([a-zA-Z\s\_\-\d]{2,50})[\s]{0,3}\:\s{0,3}([\d\.]+)`],
+            inputRegex: [String.raw`(?!\s)\{\{([a-zA-Z\s\_\-\d]{2,150})[\s]{0,3}\:\s{0,3}([\d\.]+)\}\}`, String.raw`(?!\s)([a-zA-Z\s\_\-\d]{2,50})[\s]{0,3}\:\s{0,3}([\d\.]+)`],
             outputRegex: "($1)$2", //Expected matches '$1:$2'
             outputNegativeRegex: "($1)$2",
             //Negative raw will be used when user choose to ignore (attention and weight)
