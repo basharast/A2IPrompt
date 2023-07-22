@@ -41,10 +41,6 @@ or download this repo and open `index.html` it will work locally.
 
 - Weight limiters
 
-- Much more translation improvements
-
-- UI improvements
-
 
 ## Contribution
 
@@ -75,5 +71,7 @@ Bashar Astifan (Developer)
 GPT-Tokenizer thanks to [Bazyli Brzóska](https://github.com/niieani)
 
 Syntax highlights and code editor [CodeMirror](https://codemirror.net/)
+
+Notifications [Ryan Morr](https://codepen.io/ryanmorr/pen/MyVvLg)
 
 HTML page has some elements from [Navneet](https://codepen.io/heynavneet/details/yXjPLw) and [Trent Dec](https://codepen.io/Trentdec/pen/YBEQKm)

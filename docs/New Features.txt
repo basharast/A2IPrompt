@@ -1,3 +1,12 @@
+1.4.3:
+- More translation improvements
+- Added more cases and syntax highlights
+- Results now should look much closer
+- UI notifications
+- Weight limiters disabled by default
+- Copy function (V2) no longer will merge positive and negative
+
+1.4.0 ~ 1.4.2:
 - Fetch prompt from online image
 - Prompt syntax highlights
 - Auto prompt copy

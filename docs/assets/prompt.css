@@ -24,6 +24,10 @@
     color: aqua;
 }
 
+.cm-textinv{
+    color: rgb(4, 182, 252);
+}
+
 .cm-color{
     color: rgba(255, 127, 80, 0.637);
 }

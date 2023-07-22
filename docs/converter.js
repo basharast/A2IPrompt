@@ -8,7 +8,7 @@ var reverseConversion = false;
 var allowReverseConversion = false;
 var ignoreNegativeParameters = false;
 var autoCopyInvokeAI = false;
-var limitWeight = true;
+var limitWeight = false;
 var defaultLimitWeightPositive = "1.1";
 var defaultLimitWeightNegative = "1.1";
 var invokeaiVersion = 2;
@@ -70,25 +70,6 @@ function calculateTokensCount(invokeai, auto1111) {
     $('#auto1111-tokens-negative').html(auto1111.negative.tokens);
 }
 
-function resolveInvokeAICopy(startup = false) {
-    var positiveCopy = $(".input-label-invoke[target=invokeai-positive]");
-    var negativeCopy = $(".input-label-invoke[target=invokeai-negative]");
-    var positiveLabel = $("#invokeai-positive-label");
-    if (invokeaiVersion > 2) {
-        if (startup) {
-            negativeCopy.show();
-        } else {
-            negativeCopy.fadeIn("fast");
-        }
-        positiveLabel.html("invokeAI (Positive)");
-        positiveCopy.attr("data-tippy-content", "Click to copy");
-    } else {
-        negativeCopy.fadeOut("fast");
-        positiveLabel.html("invokeAI (Prompt)");
-        positiveCopy.attr("data-tippy-content", "Click to copy (positive + negative)");
-    }
-}
-
 //Page events
 $(document).ready(function () {
 
@@ -140,7 +121,7 @@ $(document).ready(function () {
             } else {
                 //Just calculate tokens
                 var invokeAIInput = cm.getValue();
-                var tokensOutput = calculateInvokeAITokens(invokeAIInput);
+                var tokensOutput = calculateInvokeAITokens("", invokeAIInput);
                 $('#invokeai-tokens-negative').html(tokensOutput.negative.tokens);
             }
         }
@@ -187,7 +168,6 @@ $(document).ready(function () {
 
     //Set current version
     invokeaiVersion = $("#invokeai-release").val();
-    resolveInvokeAICopy(true);
 
     //Attach checkboxes events
     $(".limit-weight").on("input", function () {
@@ -251,8 +231,8 @@ $(document).ready(function () {
         var optionSelected = $("option:selected", this);
         var valueSelected = this.value;
         invokeaiVersion = valueSelected;
-        resolveInvokeAICopy();
         reverseConversion = $('#reverse-check').is(':checked');
+        showNotification('success', 'Success!', "Switched to InvokeAI v" + invokeaiVersion);
         resolvePromptSyntax();
     });
 
@@ -281,13 +261,6 @@ $(document).ready(function () {
     $('#copy-invokeai-prompt, .input-label-invoke[target=invokeai-positive]').click(function () {
         var thisElement = $("#copy-invokeai-prompt");
         var invokeAIOutput = invokeaiPositiveCodeMirror.getValue();
-        if (invokeaiVersion < 3) {
-            //This works only with version 2, 3 no longer detects negative prompts in positive input
-            var inputNegative = invokeaiNegativeCodeMirror.getValue();
-            if (inputNegative.length > 0) {
-                invokeAIOutput += "\n\n" + "[" + inputNegative + "]"
-            }
-        }
         try {
             totalClipboardCalls++;
             setTimeout(function () {
@@ -371,7 +344,7 @@ function FetchRemoteImagePrompt(imageLink) {
         var expectedAPI = siteLink + "api/v1/images?imageId=" + imageID;
         auto1111PositiveCodeMirror.getDoc().setValue("");
         auto1111NegativeCodeMirror.getDoc().setValue("");
-        setTimeout(function () {
+        setTimeout(async function () {
             try {
                 var xhr = new XMLHttpRequest();
                 xhr.open("GET", expectedAPI, false);
@@ -386,9 +359,9 @@ function FetchRemoteImagePrompt(imageLink) {
                             } catch (exj) {
 
                             }
-                            if (jsonResult != null && typeof jsonResult["items"] !== 'undefined' && typeof jsonResult["items"][0] !== 'undefined') {
+                            if (jsonResult != null && typeof jsonResult["items"] !== 'undefined' && typeof jsonResult["items"][0] !== 'undefined' && jsonResult["items"][0] !== null) {
                                 var targetImage = jsonResult["items"][0];
-                                if (typeof targetImage["meta"] !== 'undefined') {
+                                if (typeof targetImage["meta"] !== 'undefined' && targetImage["meta"] !== null) {
                                     var imageMeta = targetImage["meta"];
                                     var fetchedPositive = typeof imageMeta["prompt"] !== 'undefined' ? imageMeta["prompt"] : "";
                                     var fetchedNegative = typeof imageMeta["negativePrompt"] !== 'undefined' ? imageMeta["negativePrompt"] : "";
@@ -402,46 +375,54 @@ function FetchRemoteImagePrompt(imageLink) {
                                         }
                                         onlineImageElement.addClass("correct");
                                         onlineImageContainer.attr("data-tippy-content", "Prompt found and fetched");
+                                        showNotification('success', 'Success!', "Prompt found and fetched");
                                     } else {
                                         onlineImageElement.addClass("wrong");
                                         onlineImageContainer.attr("data-tippy-content", "Image doesn't have prompts");
+                                        showNotification('warning', 'Issue!', "Image doesn't have prompts");
                                     }
                                 } else {
                                     onlineImageElement.addClass("wrong");
                                     onlineImageContainer.attr("data-tippy-content", "Images doesn't have meta data");
+                                    showNotification('warning', 'Issue!', "Images doesn't have meta data");
                                 }
                             } else {
                                 onlineImageElement.addClass("wrong");
                                 onlineImageContainer.attr("data-tippy-content", "Response doesn't contain valid data");
+                                showNotification('error', 'Error!', "Response doesn't contain valid data<br>New images may always fail");
                             }
                         } else {
                             onlineImageElement.addClass("wrong");
                             onlineImageContainer.attr("data-tippy-content", "Request failed, check console log");
+                            showNotification('error', 'Error!', "Request failed, check console log<br>New images may always fail");
                         }
                     }
                 };
                 xhr.onerror = function (e) {
                     onlineImageElement.addClass("wrong");
                     onlineImageContainer.attr("data-tippy-content", e.message);
+                    showNotification('error', 'Error!', e.message);
                 };
 
                 xhr.onabort = function (e) {
                     onlineImageElement.addClass("wrong");
                     onlineImageContainer.attr("data-tippy-content", e.message);
+                    showNotification('error', 'Error!', e.message);
                 };
 
                 xhr.ontimeout = function (e) {
                     onlineImageElement.addClass("wrong");
                     onlineImageContainer.attr("data-tippy-content", e.message);
+                    showNotification('error', 'Error!', e.message);
                 };
 
                 xhr.send();
-
 
                 onlineImageElement.prop('disabled', false);
                 loaderElement.fadeOut("fast");
             } catch (ex) {
                 console.warn(ex);
+                showNotification('error', 'Error!', "Something went wrong, check console log");
                 onlineImageElement.prop('disabled', false);
                 loaderElement.fadeOut("fast");
             }

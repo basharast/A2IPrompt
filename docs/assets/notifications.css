@@ -1,0 +1,118 @@
+/* Notifications */
+/*https://codepen.io/ryanmorr/pen/MyVvLg*/
+#notification-container {
+    display: block;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}
+
+.notification {
+    display: block;
+    position: relative;
+    padding: 15px 15px 15px 15px;
+    overflow: hidden;
+    min-width: 250px;
+    border-radius: 4px;
+    box-shadow: 0 0 12px #999;
+    color: #1d2d3d;
+    -webkit-animation: show-notification 5s ease-out;
+    animation: show-notification 5s ease-out;
+    text-align: left;
+}
+
+.notification-close {
+    padding: 0;
+    cursor: pointer;
+    background: none;
+    border: 0;
+    outline: none;
+    -webkit-appearance: none;
+    position: absolute;
+    top: 5px;
+    right: 10px;
+    color: #fff;
+    text-shadow: 0 1px 0 #ddd;
+}
+
+.notification-close:hover {
+    color: #666;
+}
+
+.notification-title {
+    font-size: 1.1em;
+    font-weight: bold;
+}
+
+.notification-success::before,
+.notification-error::before,
+.notification-info::before,
+.notification-warning::before {
+    font-family: 'FontAwesome';
+    font-size: 35px;
+    display: block;
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    -webkit-transform: translateY(-50%);
+    transform: translateY(-50%);
+}
+
+.notification-success {
+    background-color: #90b900;
+}
+
+.notification-error {
+    background-color: #e85656;
+}
+
+.notification-info {
+    background-color: #2dacd1;
+}
+
+
+.notification-warning {
+    background-color: #dfb81c;
+}
+
+@-webkit-keyframes show-notification {
+    0% {
+        opacity: 0;
+        -webkit-transform: translate(0, -100%);
+    }
+    10% {
+        opacity: 1;
+        -webkit-transform: translate(0, 0);
+    }
+    90% {
+        opacity: 1;
+        -webkit-transform: translate(0, 0);
+    }
+    100% {
+        opacity: 0;
+        -webkit-transform: translate(0, -100%);
+    }
+}
+
+@keyframes show-notification {
+    0% {
+        opacity: 0;
+        -webkit-transform: translate(0, -100%);
+        transform: translate(0, -100%);
+    }
+    10% {
+        opacity: 1;
+        -webkit-transform: translate(0, 0);
+        transform: translate(0, 0);
+    }
+    90% {
+        opacity: 1;
+        -webkit-transform: translate(0, 0);
+        transform: translate(0, 0);
+    }
+    100% {
+        opacity: 0;
+        -webkit-transform: translate(0, -100%);
+        transform: translate(0, -100%);
+    }
+}

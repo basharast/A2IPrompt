@@ -36,6 +36,7 @@
     <link rel="stylesheet" href="./assets/night.min.css">
     <link rel="stylesheet" href="./assets/prompt.css">
     <link rel="stylesheet" href="./assets/simplescrollbars.css">
+    <link rel="stylesheet" href="./assets/notifications.css">
 </head>
 
 <body>
@@ -100,8 +101,8 @@
                 <!-- InvokeAI Header -->
                 <th style="width: 50%;display: inline-flex;">
                     <label class="input-label-invoke" target="invokeai-positive" style="color: #ccb32e;"
-                        data-tippy-content="Click to copy (positive + negative)">
-                        <p id="invokeai-positive-label" style="display: inline;">invokeAI (Prompt)</p>
+                        data-tippy-content="Click to copy">
+                        <p id="invokeai-positive-label" style="display: inline;">invokeAI (Positive)</p>
                         <a class="invokeai-copy" id="copy-invokeai-prompt">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -119,7 +120,7 @@
                     </select>
                 </th>
                 <th style="display: inline-flex;">
-                    <label class="input-label-invoke" target="invokeai-negative" style="color: #bf5a43;display: none;"
+                    <label class="input-label-invoke" target="invokeai-negative" style="color: #bf5a43;"
                         data-tippy-content="Click to copy">invokeAI (Negative)
                         <a class="invokeai-copy-b" id="copy-invokeai-negative">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
@@ -164,7 +165,7 @@
             <table>
                 <!-- Below is not correct as HTML but for now it's fine and responsive -->
                 <tr>
-                    <div class="options-check" data-tippy-content="Allow conversion from invokeai to auto1111">
+                    <div class="options-check" data-tippy-content="Convert from invokeai to auto1111 (Beta)">
                         <input class="checkbox-input" type="checkbox" id="reverse-check">
                         <label class="checkbox-label" for="reverse-check">Invokeai to auto1111</label>
                     </div>
@@ -185,19 +186,21 @@
                             type="text" />
                         <input class="limit-weight limit-weight-negative" id="limit-weight-negative-value"
                             type="text" />
-                        <p style="display: inline;">(0 = original value)</p>
+                        <p style="display: inline;">(0 = original)</p>
                     </div>
                 </tr>
                 <tr>
-                    <div class="options-check" id="online-image-container" data-tippy-content="Get prompt from online image">
+                    <div class="options-check" id="online-image-container"
+                        data-tippy-content="Get prompt from online image">
                         <label class="checkbox-label" for="limit-weight-check">Online image: </label>
                         <input class="online-image" id="remote-image-link" type="text" placeholder="Paste link here" />
-                        <div id="online-image-loader" class="loader" style="display: none;"></div> 
+                        <div id="online-image-loader" class="loader" style="display: none;"></div>
                     </div>
                 </tr>
             </table>
         </div>
     </div>
+    <div id="notification-container"></div>
     <footer id="page-footer">
         <div class="footer-copyright text-center">&copy; Developed with ❤️</i> by
             <a href="https://github.com/basharast" class="white-text" target="_blank">Bashar Astifan</a>, <a
@@ -205,6 +208,7 @@
                 target="_blank">Discussions</a>
         </div>
     </footer>
+    <script src="./assets/notifications.js"></script>
 </body>
 
 </html>

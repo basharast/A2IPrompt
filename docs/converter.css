@@ -370,6 +370,7 @@ footer a:hover {
 @media screen and (max-width: 980px) {
   body .div {
     width: 95% !important;
+    top: 0%;
   }
 }
 

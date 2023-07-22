@@ -26,6 +26,7 @@ CodeMirror.defineSimpleMode("prompt-positive", {
         { regex: /"(?:[^\\]|\\.)*?(?:"|$)/, token: "string" },
         // You can match multiple tokens at once. Note that the captured
         // groups must span the whole string in this case
+        { regex: /<(?!lora|lyco).*?>/, token: "textinv" },
         {
             regex: /(withLora)\((.*?,)/,
             token: ["lora", "lora-file"]
@@ -59,7 +60,7 @@ CodeMirror.defineSimpleMode("prompt-positive", {
             token: "photography"
         },
         {
-            regex: /(?<!\w)(4k|8k|exquisite|fine detail|best quality|low quality|highly detailed|masterpiece|Octane render|realistic|Unreal Engine)(?!\w)/,
+            regex: /(?<!\w)(4k|8k|exquisite|fine detail|best quality|low quality|lowres|normal quality|worst quality|highly detailed|masterpiece|Octane render|realistic|Unreal Engine)(?!\w)/,
             token: "quality"
         },
         {
@@ -85,7 +86,7 @@ CodeMirror.defineSimpleMode("prompt-positive", {
         { regex: /\/(?:[^\\]|\\.)*?\//, token: "variable-3" },
         // A next property will cause the mode to move to a different state
         { regex: /\/\*/, token: "comment", next: "comment" },
-        { regex: /[\/*=<>!]+/, token: "operator" },
+        { regex: /[\/*=!]+/, token: "operator" },
         { regex: /[\(\)\+]+/, token: "operator-2" },
         { regex: /[\[\]\-]+/, token: "decrease-1" },
         { regex: /[a-zA-Z][a-zA-Z0-9]*/, token: getRandomPositiveColor },
@@ -121,6 +122,7 @@ CodeMirror.defineSimpleMode("prompt-negative", {
         { regex: /"(?:[^\\]|\\.)*?(?:"|$)/, token: "string" },
         // You can match multiple tokens at once. Note that the captured
         // groups must span the whole string in this case
+        { regex: /<(?!lora|lyco).*?>/, token: "textinv" },
         {
             regex: /(withLora)\((.*?,)/,
             token: ["lora", "lora-file"]
@@ -132,6 +134,10 @@ CodeMirror.defineSimpleMode("prompt-negative", {
         {
             regex: /(lyco:)(.*?:)/,
             token: ["lora", "lora-file"]
+        },
+        {
+            regex: /(?<!\w)(4k|8k|exquisite|fine detail|best quality|low quality|lowres|normal quality|worst quality|highly detailed|masterpiece|Octane render|realistic|Unreal Engine)(?!\w)/,
+            token: "quality"
         },
         // Rules are matched in the order in which they appear, so there is
         // no ambiguity between this one and the one above
@@ -148,10 +154,11 @@ CodeMirror.defineSimpleMode("prompt-negative", {
         { regex: /\/(?:[^\\]|\\.)*?\//, token: "variable-3" },
         // A next property will cause the mode to move to a different state
         { regex: /\/\*/, token: "comment", next: "comment" },
-        { regex: /[-+\/*=<>!]+/, token: "operator" },
+        { regex: /[\/*=!]+/, token: "operator" },
         { regex: /[\(\)]+/, token: "operator-2" },
         { regex: /[a-zA-Z][a-zA-Z0-9]*/, token: getRandomNegativeColor },
-        { regex: /[\[\]]+/, token: "decrease-2" },
+        { regex: /[\(\)\+]+/, token: "operator-2" },
+        { regex: /[\[\]\-]+/, token: "decrease-1" },
         // indent and dedent properties guide autoindentation
         { regex: /[\{\[\(]/, indent: true },
         { regex: /[\}\]\)]/, dedent: true },
