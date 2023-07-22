@@ -9,7 +9,7 @@
 
 .notification {
     display: block;
-    position: relative;
+    position: fixed;
     padding: 15px 15px 15px 15px;
     overflow: hidden;
     min-width: 250px;
@@ -19,6 +19,7 @@
     -webkit-animation: show-notification 5s ease-out;
     animation: show-notification 5s ease-out;
     text-align: left;
+    right: 10px;
 }
 
 .notification-close {

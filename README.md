@@ -74,4 +74,6 @@ Syntax highlights and code editor [CodeMirror](https://codemirror.net/)
 
 Notifications [Ryan Morr](https://codepen.io/ryanmorr/pen/MyVvLg)
 
+Checkbox switch [Edgar](https://codepen.io/BuiltByEdgar/pen/jWOVYQ)
+
 HTML page has some elements from [Navneet](https://codepen.io/heynavneet/details/yXjPLw) and [Trent Dec](https://codepen.io/Trentdec/pen/YBEQKm)

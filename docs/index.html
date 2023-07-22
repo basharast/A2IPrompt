@@ -21,6 +21,7 @@
     <script src="./assets/simplescrollbars.js"></script>
     <script src="./assets/popper.min.js"></script>
     <script src="./assets/tippy-bundle.umd.min.js"></script>
+    <script src="./assets/crc32.js"></script>
     <script src="./assets/prompt.js"></script>
     <link rel="shortcut icon" href="./assets/fav.png">
     <!-- cl100k_base.js taken from https://github.com/niieani/gpt-tokenizer-->
@@ -97,7 +98,7 @@
                     <p class="auto1111-tokens-b" id="auto1111-tokens-negative">0</p>
                 </th>
             </tr>
-            <tr style="padding-top: 20px;margin-left: 5px;">
+            <tr style="padding-top: 20px;margin-left: 5px;margin-bottom: -5px;">
                 <!-- InvokeAI Header -->
                 <th style="width: 50%;display: inline-flex;">
                     <label class="input-label-invoke" target="invokeai-positive" style="color: #ccb32e;"
@@ -166,27 +167,30 @@
                 <!-- Below is not correct as HTML but for now it's fine and responsive -->
                 <tr>
                     <div class="options-check" data-tippy-content="Convert from invokeai to auto1111 (Beta)">
-                        <input class="checkbox-input" type="checkbox" id="reverse-check">
+                        <input class="checkbox-input switch" type="checkbox" id="reverse-check">
+                        <div><div></div></div>
                         <label class="checkbox-label" for="reverse-check">Invokeai to auto1111</label>
                     </div>
                     <div class="options-check" data-tippy-content="Ignore negative's weight and attention">
-                        <input class="checkbox-input" type="checkbox" id="raw-negative-check">
-                        <label class="checkbox-label" for="raw-negative-check">Ignore Negative (params)</label>
+                        <input class="checkbox-input switch" type="checkbox" id="raw-negative-check">
+                        <div><div></div></div>
+                        <label class="checkbox-label" for="raw-negative-check">Raw negative</label>
                     </div>
                     <div class="options-check" data-tippy-content="Auto copy invokeai prompt to clipboard">
-                        <input class="checkbox-input" type="checkbox" id="auto-copy-check">
+                        <input class="checkbox-input switch" type="checkbox" id="auto-copy-check">
+                        <div><div></div></div>
                         <label class="checkbox-label" for="auto-copy-check">Auto copy (invokeai)</label>
                     </div>
                 </tr>
                 <tr>
                     <div class="options-check" data-tippy-content="Limit weight to custom value">
-                        <input class="checkbox-input" type="checkbox" id="limit-weight-check">
-                        <label class="checkbox-label" for="limit-weight-check">Max weight: </label>
+                        <input class="checkbox-input switch" type="checkbox" id="limit-weight-check">
+                        <div><div></div></div>
+                        <label class="checkbox-label switch" for="limit-weight-check">Max weight: </label>
                         <input class="limit-weight limit-weight-positive" id="limit-weight-positive-value"
                             type="text" />
                         <input class="limit-weight limit-weight-negative" id="limit-weight-negative-value"
                             type="text" />
-                        <p style="display: inline;">(0 = original)</p>
                     </div>
                 </tr>
                 <tr>

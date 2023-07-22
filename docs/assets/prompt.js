@@ -3,21 +3,29 @@
  * Link: https://github.com/basharast
  */
 
-var randomPositiveTokensColors = ["positive-1", "positive-2", "positive-3", "positive-4", "positive-5", "positive-6", "positive-7", "positive-8", "positive-9", "positive-10"];
-function getRandomPositiveColor() {
-    var index = Math.floor(Math.random() * randomPositiveTokensColors.length);
-    return randomPositiveTokensColors[index];
-}
-var randomNegativeTokensColors = ["negative-1", "negative-2", "negative-3", "negative-4", "negative-5", "negative-6", "negative-7", "negative-8", "negative-9", "negative-10"];
-function getRandomNegativeColor() {
-    var index = Math.floor(Math.random() * randomNegativeTokensColors.length);
-    return randomNegativeTokensColors[index];
+var stringToColor = (string, saturation = 100, lightness = 60) => {
+    let hash = b_crc32(string);
+    return `hsl(${(hash % 360)}, ${saturation}%, ${lightness}%)`;
 }
 
-function getRandomInvokeColor() {
-    var index = Math.floor(Math.random() * randomPositiveTokensColors.length);
-    return "invoke-" + randomPositiveTokensColors[index];
+var stringToNegativeColor = (string, saturation = 65, lightness = 55) => {
+    let hash = b_crc32(string);
+    return `hsl(${(hash % 50)}, ${saturation}%, ${lightness}%)`;
 }
+
+
+// For the sample on stackoverflow
+function colorByHashCode(stream) {
+    var color = "dummy-color:" + stringToColor(stream[0]);
+    return color;
+}
+
+function colorNegativeByHashCode(stream) {
+    var color = "dummy-color:" + stringToNegativeColor(stream[0]);
+    return color;
+}
+
+
 
 CodeMirror.defineSimpleMode("prompt-positive", {
     // The start state contains the rules that are initially used
@@ -27,6 +35,7 @@ CodeMirror.defineSimpleMode("prompt-positive", {
         // You can match multiple tokens at once. Note that the captured
         // groups must span the whole string in this case
         { regex: /<(?!lora|lyco).*?>/, token: "textinv" },
+        { regex: /UnrealisticDream|FastNegativeV2|EasyNegativeV2|FastNegative|EasyNegative|BadDream|bad_pictures|bad_artist|bad_prompt|bad_hands|bad_hand|bad_antomy/, token: "textinv" },
         {
             regex: /(withLora)\((.*?,)/,
             token: ["lora", "lora-file"]
@@ -89,7 +98,7 @@ CodeMirror.defineSimpleMode("prompt-positive", {
         { regex: /[\/*=!]+/, token: "operator" },
         { regex: /[\(\)\+]+/, token: "operator-2" },
         { regex: /[\[\]\-]+/, token: "decrease-1" },
-        { regex: /[a-zA-Z][a-zA-Z0-9]*/, token: getRandomPositiveColor },
+        { regex: /[a-zA-Z][a-zA-Z0-9]*/, token: colorByHashCode },
         // indent and dedent properties guide autoindentation
         { regex: /[\{\[\(]/, indent: true },
         { regex: /[\}\]\)]/, dedent: true },
@@ -123,6 +132,7 @@ CodeMirror.defineSimpleMode("prompt-negative", {
         // You can match multiple tokens at once. Note that the captured
         // groups must span the whole string in this case
         { regex: /<(?!lora|lyco).*?>/, token: "textinv" },
+        { regex: /UnrealisticDream|FastNegativeV2|EasyNegativeV2|FastNegative|EasyNegative|BadDream|bad_pictures|bad_artist|bad_prompt|bad_hands|bad_hand|bad_antomy/, token: "textinv" },
         {
             regex: /(withLora)\((.*?,)/,
             token: ["lora", "lora-file"]
@@ -156,7 +166,7 @@ CodeMirror.defineSimpleMode("prompt-negative", {
         { regex: /\/\*/, token: "comment", next: "comment" },
         { regex: /[\/*=!]+/, token: "operator" },
         { regex: /[\(\)]+/, token: "operator-2" },
-        { regex: /[a-zA-Z][a-zA-Z0-9]*/, token: getRandomNegativeColor },
+        { regex: /[a-zA-Z][a-zA-Z0-9]*/, token: colorNegativeByHashCode },
         { regex: /[\(\)\+]+/, token: "operator-2" },
         { regex: /[\[\]\-]+/, token: "decrease-1" },
         // indent and dedent properties guide autoindentation
@@ -227,9 +237,9 @@ CodeMirror.defineSimpleMode("prompt-invokeai", {
                     globalNegativeOpen = false;
                     return "decrease-1";
                 }
-                var tokenColor = getRandomInvokeColor();
+                var tokenColor = colorByHashCode(stream);
                 if (globalNegativeOpen) {
-                    tokenColor = getRandomNegativeColor();
+                    tokenColor = colorNegativeByHashCode(stream);
                 }
                 return tokenColor;
             }

@@ -328,6 +328,16 @@ $(document).ready(function () {
             FetchRemoteImagePrompt(link);
         }
     });
+
+    //Page codeMirror style resolver
+    $("body").on('DOMSubtreeModified', ".CodeMirror-code", function () {
+        $("span[class^='cm-dummy-color']").each(function (index, value) {
+            var elementClass = $(this).attr('class');
+            var elementStyle = elementClass.replace("cm-dummy-", "");
+            elementStyle = elementStyle.replace(/cm\-/g, "");
+            $(this).attr("style", elementStyle);
+        });
+    });
 });
 
 function FetchRemoteImagePrompt(imageLink) {
@@ -401,19 +411,19 @@ function FetchRemoteImagePrompt(imageLink) {
                 xhr.onerror = function (e) {
                     onlineImageElement.addClass("wrong");
                     onlineImageContainer.attr("data-tippy-content", e.message);
-                    showNotification('error', 'Error!', e.message);
+                    showNotification('error', 'Error!', e.message+"<br>Check console log");
                 };
 
                 xhr.onabort = function (e) {
                     onlineImageElement.addClass("wrong");
                     onlineImageContainer.attr("data-tippy-content", e.message);
-                    showNotification('error', 'Error!', e.message);
+                    showNotification('error', 'Aborted!', e.message+"<br>Check console log");
                 };
 
                 xhr.ontimeout = function (e) {
                     onlineImageElement.addClass("wrong");
                     onlineImageContainer.attr("data-tippy-content", e.message);
-                    showNotification('error', 'Error!', e.message);
+                    showNotification('error', 'Timeout!', e.message+"<br>Check console log");
                 };
 
                 xhr.send();

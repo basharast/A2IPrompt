@@ -1,3 +1,8 @@
+1.4.4:
+- UI improvements
+- Each keyword will have custom color, no longer random
+- Minor fixes
+
 1.4.3:
 - More translation improvements
 - Added more cases and syntax highlights

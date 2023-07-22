@@ -165,7 +165,7 @@ var regexConversionTable = {
         {
             //Ratio, which will cause blend in v2 because of ':'
             inputRegex: String.raw`(\,\s{0,3}\d{1,2}):(\d{1,2}\s{0,3}\,)`,
-            outputRegex: "$1 by $2", //Expected matches '($1:$2)'=> '{{$1:$2}}' just reform it to avoid attention, it will be solved below
+            outputRegex: "$1 by $2", //Expected matches '$1:$2'=> '$1 by $2', using ':' will cause blend issue
             outputNegativeRegex: "$1 by $2",
             //Negative raw will be used when user choose to ignore (attention and weight)
             outputNegativeRawRegex: "$1 by $2",
@@ -235,7 +235,7 @@ var regexConversionTable = {
             },
         },
         {
-            //Weight resolver
+            //Weight resolver (Optional)
             //This purely made based on test and not logic
             //weight with values such as 2 is causing bad results
             //it will be forced to custom value by user
