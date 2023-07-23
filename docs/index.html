@@ -163,56 +163,193 @@
 
         <br />
         <div class="options">
+            <h5 class="options-header">Options</h5>
             <table>
-                <!-- Below is not correct as HTML but for now it's fine and responsive -->
                 <tr>
-                    <div class="options-check" data-tippy-content="Convert from invokeai to auto1111 (Beta)">
-                        <input class="checkbox-input switch" type="checkbox" id="reverse-check">
-                        <div>
-                            <div></div>
-                        </div>
-                        <label class="checkbox-label" for="reverse-check">Invokeai to auto1111</label>
-                    </div>
-                    <div class="options-check" data-tippy-content="Ignore negative's weight and attention">
-                        <input class="checkbox-input switch" type="checkbox" id="raw-negative-check">
-                        <div>
-                            <div></div>
-                        </div>
-                        <label class="checkbox-label" for="raw-negative-check">Raw negative</label>
-                    </div>
-                    <div class="options-check" data-tippy-content="Auto copy invokeai prompt to clipboard">
-                        <input class="checkbox-input switch" type="checkbox" id="auto-copy-check">
-                        <div>
-                            <div></div>
-                        </div>
-                        <label class="checkbox-label" for="auto-copy-check">Auto copy (invokeai)</label>
-                    </div>
+                    <th>
+                        <details open="">
+                            <summary>Online</summary>
+                            <div class="options-check" id="online-image-container"
+                                data-tippy-content="Get prompt from online image">
+                                <label class="checkbox-label">Image: </label>
+                                <input class="online-image" id="remote-image-link" type="text"
+                                    placeholder="Paste link here" />
+                                <span class="reload" id="online-image-reload">&#x21bb;</span>
+                                <div id="online-image-loader" class="loader" style="display: none;"></div>
+                            </div>
+                        </details>
+                    </th>
                 </tr>
                 <tr>
-                    <div class="options-check">
-                        <input class="checkbox-input switch" data-tippy-content="Limit weight to custom value" type="checkbox" id="limit-weight-check">
-                        <div>
-                            <div></div>
-                        </div>
-                        <label class="checkbox-label switch" data-tippy-content="Limit weight to custom value" for="limit-weight-check">Max weight: </label>
-                        <input class="limit-weight limit-weight-positive" id="limit-weight-positive-value"
-                            type="text" />
-                        <input class="limit-weight limit-weight-negative" id="limit-weight-negative-value"
-                            type="text" />
-                        <span class="notifications" data-tippy-content="Ugly result? activate negative limit">
-                            <span class="notifications__new is-active">
-                    </div>
-                    </span>
+                    <th>
+                        <details id="online-image-info" style="display: none;">
+                            <summary>Info</summary>
+                            <label class="input-label-invoke online-image-copy" target="image-info" copy-data=""
+                                copy-type="Model" data-tippy-content="Click to copy"><span
+                                    target="image-info-value">Model</span>
+                                <a class="invokeai-copy-b">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round" class="tabler-icon tabler-icon-copy">
+                                        <path
+                                            d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z">
+                                        </path>
+                                        <path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path>
+                                    </svg>
+                                </a>
+                            </label>
+                            <label class="input-label-invoke online-image-copy online-image-hover" target="image-info"
+                                copy-data="" copy-type="Preview" data-tippy-content="Click to copy"><span
+                                    target="image-info-value">Preview</span>
+                                <a class="invokeai-copy-b">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round" class="tabler-icon tabler-icon-copy">
+                                        <path
+                                            d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z">
+                                        </path>
+                                        <path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path>
+                                    </svg>
+                                </a>
+                                <img class="online-image-preview" src="">
+                            </label>
+                            <label class="input-label-invoke online-image-copy" target="image-info" copy-data=""
+                                copy-type="Seed" data-tippy-content="Click to copy"><span
+                                    target="image-info-value">Seed</span>
+                                <a class="invokeai-copy-b">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round" class="tabler-icon tabler-icon-copy">
+                                        <path
+                                            d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z">
+                                        </path>
+                                        <path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path>
+                                    </svg>
+                                </a>
+                            </label>
+                            <label class="input-label-invoke online-image-copy" target="image-info" copy-data=""
+                                copy-type="Sampler" data-tippy-content="Click to copy"><span
+                                    target="image-info-value">Sampler</span>
+                                <a class="invokeai-copy-b">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round" class="tabler-icon tabler-icon-copy">
+                                        <path
+                                            d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z">
+                                        </path>
+                                        <path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path>
+                                    </svg>
+                                </a>
+                            </label>
+                            <label class="input-label-invoke online-image-copy" target="image-info" copy-data=""
+                                copy-type="Steps" data-tippy-content="Click to copy"><span
+                                    target="image-info-value">Steps</span>
+                                <a class="invokeai-copy-b">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round" class="tabler-icon tabler-icon-copy">
+                                        <path
+                                            d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z">
+                                        </path>
+                                        <path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path>
+                                    </svg>
+                                </a>
+                            </label>
+                            <label class="input-label-invoke online-image-copy" target="image-info" copy-data=""
+                                copy-type="CFGScale" data-tippy-content="Click to copy"><span
+                                    target="image-info-value">CFG</span>
+                                <a class="invokeai-copy-b">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round" class="tabler-icon tabler-icon-copy">
+                                        <path
+                                            d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z">
+                                        </path>
+                                        <path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path>
+                                    </svg>
+                                </a>
+                            </label>
+                            <label class="input-label-invoke online-image-copy" target="image-info" copy-data=""
+                                copy-type="Size" data-tippy-content="Click to copy"><span
+                                    target="image-info-value">Size</span>
+                                <a class="invokeai-copy-b">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round" class="tabler-icon tabler-icon-copy">
+                                        <path
+                                            d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z">
+                                        </path>
+                                        <path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path>
+                                    </svg>
+                                </a>
+                            </label>
+                        </details>
+                    </th>
+                </tr>
+                <tr>
+                    <th>
+                        <details>
+                            <summary>Weight</summary>
+                            <div class="options-check">
+                                <input class="checkbox-input switch" type="checkbox" id="limit-weight-check">
+                                <div>
+                                    <div></div>
+                                </div>
+                                <label class="checkbox-label switch" data-tippy-content="Limit weight to custom value"
+                                    for="limit-weight-check">Max: </label>
+                                <input class="limit-weight limit-weight-positive" id="limit-weight-positive-value"
+                                    type="text" data-tippy-content="0 = original" />
+                                <input class="limit-weight limit-weight-negative" id="limit-weight-negative-value"
+                                    type="text" data-tippy-content="0 = original" />
+                                <span class="notifications" data-tippy-content="Bad result? activate negative limit">
+                                    <span class="notifications__new is-active">
+                                    </span>
+                                </span>
+                            </div>
+                            <div class="options-check" id="random-weight-container">
+                                <input class="checkbox-input switch" type="checkbox" id="random-weight-check">
+                                <div>
+                                    <div></div>
+                                </div>
+                                <label id="random-weight-label" class="checkbox-label switch" for="random-weight-check"
+                                    data-tippy-content="Randomize prompt weights (Enable limiter)">Random</label>
+                                <span class="reload" id="random-weight-reload"
+                                    data-tippy-content="Refresh">&#x21bb;</span>
+                            </div>
+                        </details>
+                    </th>
+                </tr>
+                <tr>
+                    <th>
+                        <details>
+                            <summary>Others</summary>
+                            <div class="options-check" data-tippy-content="Convert from invokeai to auto1111 (Beta)">
+                                <input class="checkbox-input switch" type="checkbox" id="reverse-check">
+                                <div>
+                                    <div></div>
+                                </div>
+                                <label class="checkbox-label" for="reverse-check">I2A Mode</label>
+                            </div>
+                            <div class="options-check" data-tippy-content="Ignore negative's weight and attention">
+                                <input class="checkbox-input switch" type="checkbox" id="raw-negative-check">
+                                <div>
+                                    <div></div>
+                                </div>
+                                <label class="checkbox-label" for="raw-negative-check">Raw negative</label>
+                            </div>
+                            <div class="options-check" data-tippy-content="Auto copy invokeai prompt to clipboard">
+                                <input class="checkbox-input switch" type="checkbox" id="auto-copy-check">
+                                <div>
+                                    <div></div>
+                                </div>
+                                <label class="checkbox-label" for="auto-copy-check">Auto copy</label>
+                            </div>
+                        </details>
+                    </th>
+                </tr>
+            </table>
         </div>
-        </tr>
-        <tr>
-            <div class="options-check" id="online-image-container" data-tippy-content="Get prompt from online image">
-                <label class="checkbox-label" for="limit-weight-check">Online image: </label>
-                <input class="online-image" id="remote-image-link" type="text" placeholder="Paste link here" />
-                <div id="online-image-loader" class="loader" style="display: none;"></div>
-            </div>
-        </tr>
-        </table>
+        <p class="version-tag" id="app-version">v1.0.0</p>
     </div>
     </div>
     <div id="notification-container"></div>

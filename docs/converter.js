@@ -3,12 +3,14 @@
  * Link: https://github.com/basharast
  */
 
+var appVersion = "1.5.0";
 
 var reverseConversion = false;
 var allowReverseConversion = false;
 var ignoreNegativeParameters = false;
 var autoCopyInvokeAI = false;
 var limitWeight = false;
+var randomizeWeight = false;
 var defaultLimitWeightPositive = "1.1";
 var defaultLimitWeightNegative = "1.1";
 var invokeaiVersion = 2;
@@ -70,7 +72,8 @@ function calculateTokensCount(invokeai, auto1111) {
     $('#auto1111-tokens-negative').html(auto1111.negative.tokens);
 }
 
-//Page events
+//Page ready
+//Warning: before you scroll down, if you are looking for dynamic & organized code this is the wrong place, below everything made manually (planned to be better.. one day)
 $(document).ready(function () {
 
     //CodeMirror default config
@@ -161,6 +164,7 @@ $(document).ready(function () {
     $('#reverse-check').prop('checked', allowReverseConversion);
     $('#raw-negative-check').prop('checked', ignoreNegativeParameters);
     $('#limit-weight-check').prop('checked', limitWeight);
+    $('#random-weight-check').prop('checked', randomizeWeight);
     $('#auto-copy-check').prop('checked', autoCopyInvokeAI);
     $('#limit-weight-positive-value').val(defaultLimitWeightPositive);
     $('#limit-weight-negative-value').val(defaultLimitWeightNegative);
@@ -173,13 +177,15 @@ $(document).ready(function () {
     $(".limit-weight").on("input", function () {
         defaultLimitWeightPositive = $('#limit-weight-positive-value').val();
         defaultLimitWeightNegative = $('#limit-weight-negative-value').val();
-        setLimitedWeight(defaultLimitWeightPositive, defaultLimitWeightNegative);
+        setLimitedWeight(defaultLimitWeightPositive, defaultLimitWeightNegative, randomizeWeight);
         resolvePromptSyntax();
     });
 
     if (limitWeight) {
         $('.limit-weight').prop('disabled', false);
-        setLimitedWeight(defaultLimitWeightPositive, defaultLimitWeightNegative);
+        $('#random-weight-label').attr('data-tippy-content', "Randomize prompt weights");
+        $('#random-weight-container').removeClass("disabled");
+        setLimitedWeight(defaultLimitWeightPositive, defaultLimitWeightNegative, randomizeWeight);
         if (ignoreNegativeParameters) {
             $('#limit-weight-negative-value').prop('disabled', true);
         } else {
@@ -187,6 +193,9 @@ $(document).ready(function () {
         }
     } else {
         $('.limit-weight').prop('disabled', true);
+        $('#random-weight-check').prop('disabled', true);
+        $('#random-weight-label').attr('data-tippy-content', "Randomize prompt weights (Enable limiter)");
+        $('#random-weight-container').addClass("disabled");
     }
 
     $('#reverse-check').change(function () {
@@ -212,7 +221,10 @@ $(document).ready(function () {
         limitWeight = this.checked;
         if (limitWeight) {
             $('.limit-weight').prop('disabled', false);
-            setLimitedWeight(defaultLimitWeightPositive, defaultLimitWeightNegative);
+            $('#random-weight-check').prop('disabled', false);
+            $('#random-weight-label').attr('data-tippy-content', "Randomize prompt weights");
+            $('#random-weight-container').removeClass("disabled");
+            setLimitedWeight(defaultLimitWeightPositive, defaultLimitWeightNegative, randomizeWeight);
             if (ignoreNegativeParameters) {
                 $('#limit-weight-negative-value').prop('disabled', true);
             } else {
@@ -220,10 +232,28 @@ $(document).ready(function () {
             }
         } else {
             $('.limit-weight').prop('disabled', true);
-            setLimitedWeight("$1", "$1");
+            $('#random-weight-check').prop('disabled', true);
+            $('#random-weight-label').attr('data-tippy-content', "Randomize prompt weights (Enable limiter)");
+            $('#random-weight-container').addClass("disabled");
+            setLimitedWeight("$1", "$1", randomizeWeight);
         }
         reverseConversion = $('#reverse-check').is(':checked');
         resolvePromptSyntax();
+    });
+
+    $('#random-weight-check').change(function () {
+        randomizeWeight = this.checked;
+        setLimitedWeight(defaultLimitWeightPositive, defaultLimitWeightNegative, randomizeWeight);
+        reverseConversion = $('#reverse-check').is(':checked');
+        resolvePromptSyntax();
+    });
+
+    $("#random-weight-reload").click(function () {
+        if (randomizeWeight) {
+            setLimitedWeight(defaultLimitWeightPositive, defaultLimitWeightNegative, randomizeWeight);
+            reverseConversion = $('#reverse-check').is(':checked');
+            resolvePromptSyntax();
+        }
     });
 
     //Attach invokeai version event
@@ -295,7 +325,7 @@ $(document).ready(function () {
     //Attach tooltips
     tippy('[data-tippy-content]', {
         allowHTML: true,
-        onShown(instance) {
+        onShow(instance) {
             let cont = instance.reference.dataset.tippyContent;
             instance.setContent(cont);
         },
@@ -316,16 +346,24 @@ $(document).ready(function () {
     });
 
     //Remote image event
-    //Attach checkboxes events
     $("#remote-image-link").on("input", function () {
-        var onlineImageElement = $("#remote-image-link");
-        var onlineImageContainer = $("#online-image-container");
-        var link = onlineImageElement.val();
-        onlineImageElement.removeClass("correct");
-        onlineImageElement.removeClass("wrong");
-        onlineImageContainer.attr("data-tippy-content", "Get prompt from online image");
-        if (link.length > 0) {
-            FetchRemoteImagePrompt(link);
+        RemoteImageCall();
+    });
+    $("#online-image-reload").click(function () {
+        RemoteImageCall();
+    });
+    $('[target=image-info]').click(function () {
+        var copyData = $(this).attr("copy-data");
+        var dataType = $(this).attr("copy-type");
+        try {
+            navigator.clipboard.writeText(copyData);
+            if (dataType == "Preview") {
+                showNotification('success', dataType, "Image link sent to clipboard");
+            } else {
+                showNotification('success', dataType, copyData + "<br>Sent to clipboard");
+            }
+        } catch (ex) {
+            showNotification('error', dataType, "Failed to copy<br>Check console log");
         }
     });
 
@@ -338,11 +376,28 @@ $(document).ready(function () {
             $(this).attr("style", elementStyle);
         });
     });
+
+    //Assign app version
+    $("#app-version").html("v" + appVersion);
 });
 
+function RemoteImageCall() {
+    var onlineImageElement = $("#remote-image-link");
+    var onlineImageContainer = $("#online-image-container");
+    var onlineImageInfo = $("#online-image-info");
+    var link = onlineImageElement.val();
+    onlineImageElement.removeClass("correct");
+    onlineImageElement.removeClass("wrong");
+    onlineImageContainer.attr("data-tippy-content", "Get prompt from online image");
+    onlineImageInfo.hide();
+    if (link.length > 0) {
+        FetchRemoteImagePrompt(link);
+    }
+}
 function FetchRemoteImagePrompt(imageLink) {
     var onlineImageElement = $("#remote-image-link");
     var onlineImageContainer = $("#online-image-container");
+    var onlineImageInfo = $("#online-image-info");
     if (typeof imageLink !== 'undefined' && imageLink.indexOf("http") !== -1 && imageLink.indexOf("images/") !== -1) {
         var loaderElement = $("#online-image-loader");
 
@@ -375,6 +430,7 @@ function FetchRemoteImagePrompt(imageLink) {
                                     var imageMeta = targetImage["meta"];
                                     var fetchedPositive = typeof imageMeta["prompt"] !== 'undefined' ? imageMeta["prompt"] : "";
                                     var fetchedNegative = typeof imageMeta["negativePrompt"] !== 'undefined' ? imageMeta["negativePrompt"] : "";
+                                    var fetchedPreview = typeof targetImage["url"] !== 'undefined' && targetImage["url"] !== null ? targetImage["url"] : "";
 
                                     if ((fetchedPositive != null && fetchedPositive.length) > 0 || (fetchedNegative != null && fetchedNegative.length) > 0) {
                                         if (fetchedPositive != null && fetchedPositive.length > 0) {
@@ -386,25 +442,85 @@ function FetchRemoteImagePrompt(imageLink) {
                                         onlineImageElement.addClass("correct");
                                         onlineImageContainer.attr("data-tippy-content", "Prompt found and fetched");
                                         showNotification('success', 'Success!', "Prompt found and fetched");
+
+                                        //Fetch image info
+                                        var fetchedSeed = typeof imageMeta["seed"] !== 'undefined' && imageMeta["seed"] !== null ? imageMeta["seed"].toString() : "";
+                                        var fetchedSampler = typeof imageMeta["sampler"] !== 'undefined' && imageMeta["sampler"] !== null ? imageMeta["sampler"] : "";
+                                        var fetchedSteps = typeof imageMeta["steps"] !== 'undefined' && imageMeta["steps"] !== null ? imageMeta["steps"].toString() : "";
+                                        var fetchedcfgScale = typeof imageMeta["cfgScale"] !== 'undefined' && imageMeta["cfgScale"] !== null ? imageMeta["cfgScale"].toString() : "";
+                                        var fetchedSize = typeof imageMeta["Size"] !== 'undefined' && imageMeta["Size"] !== null ? imageMeta["Size"] : "";
+                                        var fetchedModel = typeof imageMeta["Model"] !== 'undefined' && imageMeta["Model"] !== null ? imageMeta["Model"] : "";
+                                        var infoList = [
+                                            {
+                                                type: "Seed",
+                                                data: fetchedSeed
+                                            },
+                                            {
+                                                type: "Sampler",
+                                                data: fetchedSampler
+                                            },
+                                            {
+                                                type: "Steps",
+                                                data: fetchedSteps
+                                            },
+                                            {
+                                                type: "CFGScale",
+                                                data: fetchedcfgScale
+                                            },
+                                            {
+                                                type: "Size",
+                                                data: fetchedSize
+                                            },
+                                            {
+                                                type: "Model",
+                                                data: fetchedModel
+                                            },
+                                            {
+                                                type: "Preview",
+                                                data: fetchedPreview
+                                            },
+                                        ];
+                                        infoList.forEach(function (imageInfoItem) {
+                                            var dataType = imageInfoItem.type;
+                                            var dataCopy = imageInfoItem.data;
+                                            if (dataCopy.length > 0) {
+                                                $('[copy-type=' + dataType + ']').attr("copy-data", dataCopy);
+                                                if (dataType == "Preview") {
+                                                    $('[copy-type=' + dataType + ']').attr("data-tippy-content", "Click to copy");
+                                                    $(".online-image-preview").attr("src", dataCopy);
+                                                } else {
+                                                    $('[copy-type=' + dataType + ']').attr("data-tippy-content", dataCopy);
+                                                }
+                                                $('[copy-type=' + dataType + ']').show();
+                                            } else {
+                                                $('[copy-type=' + dataType + ']').hide();
+                                            }
+                                        });
+
+                                        onlineImageInfo.show();
                                     } else {
                                         onlineImageElement.addClass("wrong");
                                         onlineImageContainer.attr("data-tippy-content", "Image doesn't have prompts");
                                         showNotification('warning', 'Issue!', "Image doesn't have prompts");
+                                        onlineImageInfo.hide();
                                     }
                                 } else {
                                     onlineImageElement.addClass("wrong");
                                     onlineImageContainer.attr("data-tippy-content", "Images doesn't have meta data");
                                     showNotification('warning', 'Issue!', "Images doesn't have meta data");
+                                    onlineImageInfo.hide();
                                 }
                             } else {
                                 onlineImageElement.addClass("wrong");
                                 onlineImageContainer.attr("data-tippy-content", "Response doesn't contain valid data");
                                 showNotification('error', 'Error!', "Response doesn't contain valid data<br>New images may always fail");
+                                onlineImageInfo.hide();
                             }
                         } else {
                             onlineImageElement.addClass("wrong");
                             onlineImageContainer.attr("data-tippy-content", "Request failed, check console log");
                             showNotification('error', 'Error!', "Request failed, check console log<br>New images may always fail");
+                            onlineImageInfo.hide();
                         }
                     }
                 };
@@ -412,18 +528,21 @@ function FetchRemoteImagePrompt(imageLink) {
                     onlineImageElement.addClass("wrong");
                     onlineImageContainer.attr("data-tippy-content", (typeof e.message === 'undefined' ? "Please try again" : e.message));
                     showNotification('error', 'Error!', (typeof e.message === 'undefined' ? "Please try again" : e.message) + "<br>Check console log");
+                    onlineImageInfo.hide();
                 };
 
                 xhr.onabort = function (e) {
                     onlineImageElement.addClass("wrong");
                     onlineImageContainer.attr("data-tippy-content", (typeof e.message === 'undefined' ? "Please try again" : e.message));
                     showNotification('error', 'Aborted!', (typeof e.message === 'undefined' ? "Please try again" : e.message) + "<br>Check console log");
+                    onlineImageInfo.hide();
                 };
 
                 xhr.ontimeout = function (e) {
                     onlineImageElement.addClass("wrong");
                     onlineImageContainer.attr("data-tippy-content", (typeof e.message === 'undefined' ? "Please try again" : e.message));
                     showNotification('error', 'Timeout!', (typeof e.message === 'undefined' ? "Please try again" : e.message) + "<br>Check console log");
+                    onlineImageInfo.hide();
                 };
 
                 xhr.send();
@@ -433,6 +552,7 @@ function FetchRemoteImagePrompt(imageLink) {
             } catch (ex) {
                 console.warn(ex);
                 showNotification('error', 'Error!', "Something went wrong, check console log");
+                onlineImageInfo.hide();
                 onlineImageElement.prop('disabled', false);
                 loaderElement.fadeOut("fast");
             }
@@ -440,5 +560,6 @@ function FetchRemoteImagePrompt(imageLink) {
     } else {
         onlineImageElement.addClass("wrong");
         onlineImageContainer.attr("data-tippy-content", "This link is not valid or not supported");
+        onlineImageInfo.hide();
     }
 }

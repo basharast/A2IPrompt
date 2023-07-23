@@ -3,7 +3,7 @@
  * Link: https://github.com/basharast
  */
 
-var stringToColor = (string, saturation = 100, lightness = 60) => {
+var stringToColor = (string, saturation = 90, lightness = 55) => {
     let hash = b_crc32(string);
     return `hsl(${(hash % 360)}, ${saturation}%, ${lightness}%)`;
 }
@@ -13,8 +13,6 @@ var stringToNegativeColor = (string, saturation = 65, lightness = 55) => {
     return `hsl(${(hash % 50)}, ${saturation}%, ${lightness}%)`;
 }
 
-
-// For the sample on stackoverflow
 function colorByHashCode(stream) {
     var color = "dummy-color:" + stringToColor(stream[0]);
     return color;

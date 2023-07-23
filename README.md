@@ -72,6 +72,8 @@ GPT-Tokenizer thanks to [Bazyli Brzóska](https://github.com/niieani)
 
 Syntax highlights and code editor [CodeMirror](https://codemirror.net/)
 
+Tooltips [TippyJS](https://atomiks.github.io/tippyjs/)
+
 Notifications [Ryan Morr](https://codepen.io/ryanmorr/pen/MyVvLg)
 
 Checkbox switch [Edgar](https://codepen.io/BuiltByEdgar/pen/jWOVYQ)

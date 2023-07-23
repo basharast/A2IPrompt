@@ -88,6 +88,7 @@ var defaultDecrease = 0.952;
 var defaultGroupWeight = 0.952;
 var limitWeightPositive = "$1";
 var limitWeightNegative = "$1";
+var randomWeight = false;
 
 //Main prompt syntax resolver table
 //Be aware that elements order is important, don't change it
@@ -100,7 +101,7 @@ var regexConversionTable = {
     //From auto1111 to invokeai key
     invokeAIRegexPatterns: [
         {
-            //Blending regex, no limited number for items
+            //Group regex, no limited number for items
             //Supported cases: 
             //1- {word1|word1|...} or {word1@weight|word1@weight|...} or {word1:weight|word1:weight|...} 
             //2- [word1|word1|...] or [word1@weight|word1@weight|...] or [word1:weight|word1:weight|...] 
@@ -144,7 +145,7 @@ var regexConversionTable = {
                 }
                 return inputText;
             },
-            //Not sure if there is blending in negative prompts
+            //Not sure if there is groups in negative prompts
             //but for now I use only the internal match as-is
             outputNegativeRegex: "$1",
             //Negative raw will be used when user choose to ignore (attention and weight)
@@ -153,7 +154,7 @@ var regexConversionTable = {
         },
         {
             //Ratio, which will cause blend in v2 because of ':'
-            inputRegex: String.raw`(\,\s{0,3}\d{1,2}):(\d{1,2}\s{0,3}\,)`,
+            inputRegex: String.raw`(\,[\sA-Za-z]+\s{1,3}\d{1,2}):(\d{1,2}\s{0,3}\,)`,
             outputRegex: "$1\\:$2", //Expected matches '$1:$2'=> '$1\:$2'
             outputNegativeRegex: "$1\\:$2",
             //Negative raw will be used when user choose to ignore (attention and weight)
@@ -172,6 +173,7 @@ var regexConversionTable = {
             //This purely made based on test and not logic
             //weight with values such as 2 is causing bad results (mostly when it's in negative)
             //it will be forced to custom value by user
+            //TO-DO: make option to have random values
             inputRegex: [
                 function (negativeMatch = false) {
                     var matchRegex = String.raw`\)(\d+(?:\.\d+)?)\)`;
@@ -191,6 +193,11 @@ var regexConversionTable = {
                         } else {
                             limitedValue = first;
                         }
+                    }
+                    if (randomWeight) {
+                        var limitFloat = parseFloat(limitedValue).toFixed(2);
+                        var randomFloat = getRandomFloat(0.1, limitFloat, 2);
+                        limitedValue = randomFloat;
                     }
                     for (const match of regexGroups) {
                         var fullMatch = match[0];
@@ -219,6 +226,11 @@ var regexConversionTable = {
                             limitedValue = first;
                         }
                     }
+                    if (randomWeight) {
+                        var limitFloat = parseFloat(limitedValue).toFixed(2);
+                        var randomFloat = getRandomFloat(0.1, limitFloat, 2);
+                        limitedValue = randomFloat;
+                    }
                     for (const match of regexGroups) {
                         var fullMatch = match[0];
                         var innerMatch = match[1];
@@ -236,6 +248,54 @@ var regexConversionTable = {
             },
             //Negative raw will be used when user choose to ignore (attention and weight)
             outputNegativeRawRegex: ":$1",
+            recursiveCheck: false
+        },
+        {
+            //Multiple words with weight resolver
+            //as I understand when there are no '()' the weight must be related to the closet word: 'a cat and a dog:0.5' => '0.5' is for 'dog' only
+            //when word wrapped within '()' this mean the whole word?: '(best quality:1.3)' => refer to one thing 'best quality' weight is '1.3'
+            //the issue will start when we have: '(masterpiece, best quality:1.2)', this will be solved below
+            inputRegex: [String.raw`(?<!withLora)\(([^\)(?!\\)]+)\)`],
+            //'outputRegex'->'function' style
+            outputRegex: function (inputText, regexGroups) {
+                for (const match of regexGroups) {
+                    var fullMatch = match[0];
+                    var innerMatch = match[1];
+                    //Check if internal matched value has ','
+                    if (innerMatch.indexOf(",") !== -1) {
+                        var groups = innerMatch.split(",");
+                        var outputElements = [];
+                        groups.forEach(function (groupItem) {
+                            var appendValue = "";
+                            groupItem = groupItem.trim();
+                            //The default weight split is ':'
+                            var possibleWeightSplits = [":"];
+                            possibleWeightSplits.forEach(function (splitItem) {
+                                //Check if split char is at start '!== 0' this shouldn't be changed
+                                if (groupItem.indexOf(splitItem) !== -1 && groupItem.indexOf(splitItem) !== 0) {
+                                    var itemData = groupItem.split(splitItem);
+                                    var itemText = itemData[0];
+                                    var itemWeight = itemData[1];
+                                    appendValue = `(${itemText})${itemWeight}`;
+                                }
+                            });
+                            if (appendValue.length == 0) {
+                                //This mean no weight specified, 
+                                appendValue = `${groupItem}`;
+                            }
+                            outputElements.push(appendValue);
+                        });
+                        //Split array items using ','
+                        var finalText = "(" + outputElements.join(", ") + ")";
+                        inputText = inputText.replace(fullMatch, finalText);
+                    }
+                }
+                return inputText;
+            },
+            //but for now I use only the internal match as-is
+            outputNegativeRegex: "$1",
+            //Negative raw will be used when user choose to ignore (attention and weight)
+            outputNegativeRawRegex: "$1",
             recursiveCheck: false
         },
         {
@@ -262,6 +322,7 @@ var regexConversionTable = {
         },
         {
             //Word with weight such as: '(word):weight'
+            //TO-DO: case with '::' has very specific solution but for now it will be solved here
             inputRegex: [String.raw`(\([^(]+\))(?![\-\+\d])\s{0,5}\:\:\s{0,5}([\d\.]+)`, String.raw`(\([^(]+\))(?![\-\+\d])\s{0,5}\:\s{0,5}([\d\.]+)`],
             outputRegex: "$1$2", //Expected matches '$1:$2'=> '($1)$2'
             outputNegativeRegex: "$1$2",
@@ -271,7 +332,7 @@ var regexConversionTable = {
         },
         {
             //Attention without weight
-            inputRegex: String.raw`(?<!withLora)!#([^)(?!\\)]+)#!(?![\-\+\d])`,
+            inputRegex: [String.raw`(?<!withLora)!#([^)(?!\\)]+)#!(?![\-\+\d])`, String.raw`(?<!withLora)!#(\([^)(?!\\)]+\)[\d\.]+)#!(?![\-\+\d])`],
             //'inputRegex, outputRegex'->'recursiveCheck' style
             outputRegex: "($1)@", //@ suppose to be replaced with one '+' or more based on check
             outputNegativeRegex: "($1)!", //! suppose to be replaced with one '+' or more based on check
@@ -368,6 +429,7 @@ var regexConversionTable = {
         },
         {
             //This regex made for cases like [keywords]:weight
+            //TO-DO: case with '::' has very specific solution but for now it will be solved here
             inputRegex: [String.raw`(?<!\[)\[([^[(?!\]]+.*)\](?![\-\+\d])\s{0,5}\:\:\s{0,5}([\d\.]+)`, String.raw`(?<!\[)\[([^[(?!\]]+.*)\](?![\-\+\d])\s{0,5}\:\s{0,5}([\d\.]+)`],
             outputRegex: `(($1)${defaultDecrease})$2`,
             outputNegativeRegex: `(($1)${defaultDecrease})$2`,
@@ -869,7 +931,7 @@ function prepareOutput(simpleInput, originalPositive, originalNegative, invokeAI
     return output;
 }
 
-function setLimitedWeight(positive, negative) {
+function setLimitedWeight(positive, negative, random = false) {
     if (positive !== null && [...positive.matchAll(/[\d\.]+/g)].length && positive > 0) {
         limitWeightPositive = positive;
     } else {
@@ -881,6 +943,7 @@ function setLimitedWeight(positive, negative) {
     } else {
         limitWeightNegative = String.raw`$1`;
     }
+    randomWeight = random;
 }
 
 /******************/
@@ -947,4 +1010,9 @@ function calculateInvokeAITokens(inputPositive, inputNegative = "") {
     };
 
     return output;
+}
+
+function getRandomFloat(min, max, decimals) {
+    const str = (Math.random() * (max - min) + min).toFixed(decimals);
+    return parseFloat(str);
 }

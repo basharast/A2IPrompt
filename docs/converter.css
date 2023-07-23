@@ -44,6 +44,10 @@ body .div textarea,
   scrollbar-width: thin;
 }
 
+.CodeMirror-wrap pre {
+  word-break: break-word !important;
+}
+
 ::-webkit-scrollbar,
 *-webkit-scrollbar {
   width: 9px;
@@ -70,13 +74,29 @@ th {
 }
 
 .options {
-  margin-left: 5px;
-  margin-top: -15px;
+  position: fixed;
+  top: 15px;
+  left: 15;
+}
+
+.options-header {
+  padding: 0;
+  margin: 0;
+  margin-left: 0px;
+  display: block;
+  text-align: left;
+  margin-left: 4px;
+  text-transform: uppercase;
+  opacity: 0.9;
+  color: aliceblue;
+  border-bottom: 1.5px dashed #c4a816;
+  width: 97px;
 }
 
 .checkbox-input,
 .checkbox-label {
   cursor: pointer;
+  color: #dbdbdb;
 }
 
 .invokeai-input {
@@ -114,7 +134,7 @@ th {
 
 .options-check {
   float: left;
-  margin-top: 15px;
+  margin-top: 3px;
   margin-left: 5px;
   border: 1px dashed #ccb32e;
   padding: 5px;
@@ -156,9 +176,9 @@ th {
 
 .invokeai-copy-b {
   cursor: pointer;
-  position: absolute;
-  margin-left: 5px;
-  margin-top: 2px;
+  position: relative;
+  margin-left: 0px;
+  top: 2px;
 }
 
 .copy-text {
@@ -178,6 +198,32 @@ th {
   width: 100px;
   display: none;
   margin-left: 92px;
+}
+
+.online-image-copy {
+  color: #c4a816;
+  margin-top: 10px;
+  display: inline-flex;
+  margin-left: 3px;
+  padding-left: 4px;
+}
+
+.online-image-preview {
+  display: none;
+  max-width: 150px;
+  position: absolute;
+  margin-top: 20px;
+  border: 1px solid #101820;
+  border-radius: 10px;
+  margin-left: -35px;
+  z-index: 100;
+  background-image: linear-gradient(45deg, #b1b1b1 25%, transparent 25%), linear-gradient(-45deg, #b1b1b1 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #b1b1b1 75%), linear-gradient(-45deg, rgba(255, 255, 255, 0.8) 75%, #b1b1b1 75%);
+  background-size: 16px 16px;
+  background-position: 0 0, 0 8px, 8px -8px, -8px 0px;
+}
+
+.online-image-hover:hover img {
+  display: block;
 }
 
 .auto1111-tokens-a {
@@ -411,7 +457,6 @@ input[type=checkbox].switch:checked+div>div {
   }
 }
 
-
 .limit-weight-positive {
   max-width: 50px;
   background: #28865a;
@@ -437,6 +482,76 @@ input[type=checkbox].switch:checked+div>div {
   opacity: 0.9;
 }
 
+#random-weight-container.disabled {
+  opacity: 0.65;
+  filter: saturate(0);
+}
+
+.reload {
+  font-family: Lucida Sans Unicode;
+  cursor: pointer;
+  color: orange;
+  height: 22px;
+  display: inline-block;
+  margin-top: -3px
+}
+
+summary {
+  float: left;
+  cursor: pointer;
+  opacity: 0.6;
+  text-transform: uppercase;
+}
+
+details[open] summary {
+  opacity: 1;
+}
+
+details {
+  border: 1px solid rgba(204, 179, 46, 0.3);
+  list-style: none;
+  background: #101820;
+  padding-right: 5px;
+}
+
+details[open] {
+  box-shadow: 3px 3px 5px #101820;
+}
+
+summary {
+  display: block;
+  transition: 0.2s;
+  font-weight: 700;
+  padding: 10px;
+  min-width: 70px;
+}
+
+summary:focus {
+  outline: 2px solid #5b13ec;
+}
+
+.collapse-init summary::after {
+  border-right: 2px solid;
+  border-bottom: 2px solid;
+  content: "";
+  float: right;
+  width: 0.5em;
+  height: 0.5em;
+  margin-top: 0.25em;
+  transform: rotate(45deg);
+  transition: inherit;
+}
+
+[open] summary {
+  background: #ccb32e;
+  color: #101820;
+}
+
+[open] summary::after {
+  margin-top: 0.5em;
+  transform: rotate(225deg);
+}
+
 body .div textarea:focus {
   outline: none;
 }
@@ -451,6 +566,14 @@ body .div button:focus {
   outline: none;
 }
 
+.version-tag {
+  position: absolute;
+  right: 10px;
+  bottom: -7px;
+  font-size: 13px;
+  opacity: 0.3;
+}
+
 footer {
   position: fixed;
   font-size: 12px;
@@ -460,7 +583,7 @@ footer {
   line-height: 60px;
   font-size: 14px;
   background-color: #101820;
-  color: #fff;
+  color: #d4d7e4;
   text-align: center;
   z-index: 500;
 }
@@ -480,10 +603,37 @@ footer a:hover {
     width: 95% !important;
     top: 0%;
   }
+
+  .options {
+    position: unset !important;
+    ;
+    top: unset !important;
+    ;
+    left: unset !important;
+    ;
+    margin-left: 5px !important;
+    ;
+  }
+
+  .options-header {
+    display: none !important;
+  }
+
+  details[open] {
+    box-shadow: unset !important;
+  }
+
+  .online-image-preview {
+    bottom: 145px;
+  }
 }
 
 @media screen and (min-width: 980px) and (max-width: 1320px) {
   body .div {
     width: 75% !important;
+  }
+
+  details[open] {
+    box-shadow: 5px 10px 20px #101820 !important;
   }
 }

@@ -1,3 +1,12 @@
+1.5.0:
+- Fixed many translation cases
+- Re-arranged UI for better experince
+- Image info (Seed, Model..etc) will appear with copy shortcut
+- Random weight feature (part of weight limiter)
+
+1.4.5:
+- Translation fixes and enhancements
+
 1.4.4:
 - UI improvements
 - Each keyword will have custom color, no longer random
