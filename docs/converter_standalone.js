@@ -194,12 +194,14 @@ var regexConversionTable = {
                             limitedValue = first;
                         }
                     }
-                    if (randomWeight) {
-                        var limitFloat = parseFloat(limitedValue).toFixed(2);
-                        var randomFloat = getRandomFloat(0.1, limitFloat, 2);
-                        limitedValue = randomFloat;
-                    }
+
+                    var limitedValueTemp = limitedValue;
                     for (const match of regexGroups) {
+                        if (randomWeight) {
+                            var limitFloat = parseFloat(limitedValueTemp).toFixed(2);
+                            var randomFloat = getRandomFloat(0.1, limitFloat, 2);
+                            limitedValue = randomFloat;
+                        }
                         var fullMatch = match[0];
                         var innerMatch = match[1];
                         if (parseFloat(innerMatch).toFixed(5) < 9 && (parseFloat(innerMatch).toFixed(5) > parseFloat(limitedValue).toFixed(5))) {
@@ -226,12 +228,14 @@ var regexConversionTable = {
                             limitedValue = first;
                         }
                     }
-                    if (randomWeight) {
-                        var limitFloat = parseFloat(limitedValue).toFixed(2);
-                        var randomFloat = getRandomFloat(0.1, limitFloat, 2);
-                        limitedValue = randomFloat;
-                    }
+
+                    var limitedValueTemp = limitedValue;
                     for (const match of regexGroups) {
+                        if (randomWeight) {
+                            var limitFloat = parseFloat(limitedValueTemp).toFixed(2);
+                            var randomFloat = getRandomFloat(0.1, limitFloat, 2);
+                            limitedValue = randomFloat;
+                        }
                         var fullMatch = match[0];
                         var innerMatch = match[1];
                         if (parseFloat(innerMatch).toFixed(5) < 9 && (parseFloat(innerMatch).toFixed(5) > parseFloat(limitedValue).toFixed(5))) {
