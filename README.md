@@ -41,6 +41,8 @@ or download this repo and open `index.html` it will work locally.
 
 - Weight limiters
 
+- Weight randomizer
+
 
 ## Contribution
 
@@ -58,6 +60,8 @@ To avoid some bad results try one of the following:
 - Turn on Ignore Negative's (attention, weight)
 
 - Limit any weight such as (1.3,1.4 or 2) to lower value.
+
+- Be sure you're not missing negative texture inversion
 
 
 ## Privacy 
