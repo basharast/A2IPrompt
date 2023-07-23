@@ -202,7 +202,7 @@ $(document).ready(function () {
         if (ignoreNegativeParameters) {
             $('#limit-weight-negative-value').prop('disabled', true);
         } else {
-            $('#limit-weight-negative-value').prop('disabled', false);
+            $('#limit-weight-negative-value').prop('disabled', !$('#limit-weight-check').is(':checked'));
         }
         reverseConversion = $('#reverse-check').is(':checked');
         resolvePromptSyntax();
