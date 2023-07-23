@@ -168,41 +168,52 @@
                 <tr>
                     <div class="options-check" data-tippy-content="Convert from invokeai to auto1111 (Beta)">
                         <input class="checkbox-input switch" type="checkbox" id="reverse-check">
-                        <div><div></div></div>
+                        <div>
+                            <div></div>
+                        </div>
                         <label class="checkbox-label" for="reverse-check">Invokeai to auto1111</label>
                     </div>
                     <div class="options-check" data-tippy-content="Ignore negative's weight and attention">
                         <input class="checkbox-input switch" type="checkbox" id="raw-negative-check">
-                        <div><div></div></div>
+                        <div>
+                            <div></div>
+                        </div>
                         <label class="checkbox-label" for="raw-negative-check">Raw negative</label>
                     </div>
                     <div class="options-check" data-tippy-content="Auto copy invokeai prompt to clipboard">
                         <input class="checkbox-input switch" type="checkbox" id="auto-copy-check">
-                        <div><div></div></div>
+                        <div>
+                            <div></div>
+                        </div>
                         <label class="checkbox-label" for="auto-copy-check">Auto copy (invokeai)</label>
                     </div>
                 </tr>
                 <tr>
-                    <div class="options-check" data-tippy-content="Limit weight to custom value">
-                        <input class="checkbox-input switch" type="checkbox" id="limit-weight-check">
-                        <div><div></div></div>
-                        <label class="checkbox-label switch" for="limit-weight-check">Max weight: </label>
+                    <div class="options-check">
+                        <input class="checkbox-input switch" data-tippy-content="Limit weight to custom value" type="checkbox" id="limit-weight-check">
+                        <div>
+                            <div></div>
+                        </div>
+                        <label class="checkbox-label switch" data-tippy-content="Limit weight to custom value" for="limit-weight-check">Max weight: </label>
                         <input class="limit-weight limit-weight-positive" id="limit-weight-positive-value"
                             type="text" />
                         <input class="limit-weight limit-weight-negative" id="limit-weight-negative-value"
                             type="text" />
+                        <span class="notifications" data-tippy-content="Ugly result? activate negative limit">
+                            <span class="notifications__new is-active">
                     </div>
-                </tr>
-                <tr>
-                    <div class="options-check" id="online-image-container"
-                        data-tippy-content="Get prompt from online image">
-                        <label class="checkbox-label" for="limit-weight-check">Online image: </label>
-                        <input class="online-image" id="remote-image-link" type="text" placeholder="Paste link here" />
-                        <div id="online-image-loader" class="loader" style="display: none;"></div>
-                    </div>
-                </tr>
-            </table>
+                    </span>
         </div>
+        </tr>
+        <tr>
+            <div class="options-check" id="online-image-container" data-tippy-content="Get prompt from online image">
+                <label class="checkbox-label" for="limit-weight-check">Online image: </label>
+                <input class="online-image" id="remote-image-link" type="text" placeholder="Paste link here" />
+                <div id="online-image-loader" class="loader" style="display: none;"></div>
+            </div>
+        </tr>
+        </table>
+    </div>
     </div>
     <div id="notification-container"></div>
     <footer id="page-footer">

@@ -399,7 +399,18 @@ input[type=checkbox].switch:checked+div>div {
   .auto1111-tokens-a {
     margin-top: 0px !important;
   }
+
+  .notifications__new {
+    top: -3px;
+  }
 }
+
+@-moz-document url-prefix() {
+  .notifications__new {
+    top: -18px;
+  }
+}
+
 
 .limit-weight-positive {
   max-width: 50px;

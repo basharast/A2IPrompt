@@ -10,8 +10,8 @@
 /*****************/
 /* MAIN FUNTIONS */
 /*****************/
-//1- convertAuto1111ToInvokeAI (positive, negative, rawNegative)
-//2- convertInvokeAIToAuto1111 (positive, negative, rawNegative)
+//1- convertAuto1111ToInvokeAI (positive, negative, rawNegative, invokeAIVersion)
+//2- convertInvokeAIToAuto1111 (positive, negative, rawNegative, invokeAIVersion)
 //3- calculateInvokeAITokens(positive, negative)
 //Both functions (1 & 2) below returns object:
 /*
@@ -82,12 +82,12 @@ function convertInvokeAIToAuto1111(inputPositive, inputNegative, ignoreNegativeP
 /***************/
 /* ENGINE CORE */
 /***************/
-//This value suppose to be used with blending case when no weight added
-//also it will be used when input has syntax such as '[word]' (online docs says '[]' decrease the strength by a factor of 0.9)
-var defaultWeight = 0.91;
+var invokeaiVersion = 2;
+var defaultIncrease = 1.1;
+var defaultDecrease = 0.952;
+var defaultGroupWeight = 0.952;
 var limitWeightPositive = "$1";
 var limitWeightNegative = "$1";
-var invokeaiVersion = 2;
 
 //Main prompt syntax resolver table
 //Be aware that elements order is important, don't change it
@@ -105,7 +105,6 @@ var regexConversionTable = {
             //1- {word1|word1|...} or {word1@weight|word1@weight|...} or {word1:weight|word1:weight|...} 
             //2- [word1|word1|...] or [word1@weight|word1@weight|...] or [word1:weight|word1:weight|...] 
             //3- (word1|word1|...) or (word1@weight|word1@weight|...) or (word1:weight|word1:weight|...) 
-            //the regex check for '(word1|word1|...)' will avoid 'lora' structure, and syntax like '\(word\)' 
             inputRegex: [String.raw`\{([^\}]+)\}`, String.raw`\[([^\]]+)\]`, String.raw`(?<!withLora)\(([^\)(?!\\)]+)\)`],
             //'outputRegex'->'function' style
             outputRegex: function (inputText, regexGroups) {
@@ -113,7 +112,7 @@ var regexConversionTable = {
                     var fullMatch = match[0];
                     var innerMatch = match[1];
                     //Check if internal matched value has '|', 
-                    //afaik this usualy used in auto1111 to blend multiple elements
+                    //afaik this usualy used in auto1111 to blend/group multiple elements
                     if (innerMatch.indexOf("|") !== -1) {
                         var groups = innerMatch.split("|");
                         var outputElements = [];
@@ -134,7 +133,7 @@ var regexConversionTable = {
                             if (appendValue.length == 0) {
                                 //This mean no weight specified, 
                                 //I used default weight to be used instead, 
-                                appendValue = `(${groupItem})${defaultWeight}`;
+                                appendValue = `(${groupItem})${defaultGroupWeight}`;
                             }
                             outputElements.push(appendValue);
                         });
@@ -153,22 +152,12 @@ var regexConversionTable = {
             recursiveCheck: false
         },
         {
-            //Word with weight such as: '(word:weight)' thanks to 'Void2258'
-            //https://github.com/invoke-ai/InvokeAI/discussions/3680#discussioncomment-6501175
-            inputRegex: [String.raw`(?!\s)\(([a-zA-Z\s\_\-\d]+)[\s]{0,3}\:\s{0,3}([\d\.]+)\)`, String.raw`\(([^)]+)#!(?![\-\+\d])\)\:([\d\.]+)`, String.raw`\(([^)]+)(?![\-\+\d])\,\:([\d\.]+)\)`],
-            outputRegex: "{{$1:$2}}", //Expected matches '($1:$2)'=> '{{$1:$2}}' just reform it to avoid attention, it will be solved below
-            outputNegativeRegex: "{{$1:$2}}",
-            //Negative raw will be used when user choose to ignore (attention and weight)
-            outputNegativeRawRegex: "$1",
-            recursiveCheck: false
-        },
-        {
             //Ratio, which will cause blend in v2 because of ':'
             inputRegex: String.raw`(\,\s{0,3}\d{1,2}):(\d{1,2}\s{0,3}\,)`,
-            outputRegex: "$1 by $2", //Expected matches '$1:$2'=> '$1 by $2', using ':' will cause blend issue
-            outputNegativeRegex: "$1 by $2",
+            outputRegex: "$1\\:$2", //Expected matches '$1:$2'=> '$1\:$2'
+            outputNegativeRegex: "$1\\:$2",
             //Negative raw will be used when user choose to ignore (attention and weight)
-            outputNegativeRawRegex: "$1 by $2",
+            outputNegativeRawRegex: "$1\\:$2",
             recursiveCheck: false,
             v3: {
                 //Using ':' is fine in v3
@@ -179,72 +168,16 @@ var regexConversionTable = {
             }
         },
         {
-            //Not sure this even valid case (I need more info and tests)
-            //Attention with weight
-            //'!#', '#1', '@' and '!' those will be replaced during 'recursive' process below using 'replacements' list
-            //(example if loopCount=4): 
-            //1st phase: '((((word)))):weight'
-            //2st phase: '(((word))):weight'
-            //3rd phase: '((word)):weight'
-            //4th phase: '(word):weight'
-            //this can be simplified in much deeper regex check, but it works fine for now and it may help in other complicated cases
-            inputRegex: [String.raw`!#([^)]+)#!(?![\-\+\d])\:([\d\.]+)`, String.raw`!#([^)]+)(?![\-\+\d])\,\:([\d\.]+)#!`],
-            //'outputRegex'->'string, regex' style
-            outputRegex: "(($1)$2)@", //@ suppose to be replaced with one '+' or more based on check
-            outputNegativeRegex: "(($1)$2)!", //! suppose to be replaced with one '+' or more based on check
-            //Negative raw will be used when user choose to ignore (attention and weight)
-            outputNegativeRawRegex: "$1",
-            //This will activate 'recursiveCheck' process from 'loopCount' value to 0
-            recursiveCheck: true,
-            //Replacement guide map so 'recursiveCheck' can use it while checking
-            replacementsMap:
-            {
-                loopCount: 10,
-                replacements: [
-                    //'output:bool' used to apply replacement on 'false'->'inputRegex' or 'true'->'outputRegex'
-                    { target: "!#", replacement: String.raw`\(`, output: false },
-                    { target: "#!", replacement: String.raw`\)`, output: false },
-                    { target: "@", replacement: "+", output: true },
-                    { target: "!", replacement: "+", output: true },
-                ]
-            },
-        },
-        {
-            //Attention without weight
-            //for more description please read 'Attention with weight' above
-            //this regex check will avoid 'lora' structure, and syntax like '\(word\)' 
-            inputRegex: String.raw`(?<!withLora)!#\(([^)(?!\\)]+)\)#!(?![\-\+\d])`,
-            //'inputRegex, outputRegex'->'recursiveCheck' style
-            outputRegex: "($1)@", //@ suppose to be replaced with one '+' or more based on check
-            outputNegativeRegex: "($1)!", //! suppose to be replaced with one '+' or more based on check
-            //Negative raw will be used when user choose to ignore (attention and weight)
-            outputNegativeRawRegex: "$1",
-            //This will activate 'recursiveCheck' process from 'loopCount' value to 0
-            recursiveCheck: true,
-            //Replacement guide map so 'recursiveCheck' can use it while checking
-            replacementsMap:
-            {
-                loopCount: 10,
-                replacements: [
-                    //'output:bool' used to apply replacement on 'false'->'inputRegex' or 'true'->'outputRegex'
-                    { target: "!#", replacement: String.raw`\(`, output: false },
-                    { target: "#!", replacement: String.raw`\)`, output: false },
-                    { target: "@", replacement: "+", output: true },
-                    { target: "!", replacement: "+", output: true },
-                ]
-            },
-        },
-        {
             //Weight resolver (Optional)
             //This purely made based on test and not logic
-            //weight with values such as 2 is causing bad results
+            //weight with values such as 2 is causing bad results (mostly when it's in negative)
             //it will be forced to custom value by user
             inputRegex: [
                 function (negativeMatch = false) {
                     var matchRegex = String.raw`\)(\d+(?:\.\d+)?)\)`;
                     return matchRegex;
                 }, function (negativeMatch = false) {
-                    var matchRegex = String.raw`\:(\d+(?:\.\d+)?)`;
+                    var matchRegex = String.raw`(?<!\\)\:(\d+(?:\.\d+)?)`;
                     return matchRegex;
                 }],
             outputRegex: function (inputText, regexGroups) {
@@ -306,6 +239,61 @@ var regexConversionTable = {
             recursiveCheck: false
         },
         {
+            //Word with weight such as: '(word:weight)' thanks to 'Void2258'
+            //This shouldn't get extra atention '+', because it's already limited with custom weight
+            //Read: https://invoke-ai.github.io/InvokeAI/features/PROMPTS/#attention-weighting
+            //Read: https://github.com/AUTOMATIC1111/stable-diffusion-webui/wiki/Features#attentionemphasis
+            //Read: https://github.com/invoke-ai/InvokeAI/discussions/3680#discussioncomment-6501175
+            inputRegex: [String.raw`(?<!\s)(\s{0,5})\(([a-zA-Z\s\_\-\d]+)[\s]{0,3}\:\s{0,3}([\d\.]+)(\s{0,5})\)`],
+            outputRegex: "$1($2)$3", //Expected matches '($1:$2)'=> '($1)$2'
+            outputNegativeRegex: "$1($2)$3",
+            //Negative raw will be used when user choose to ignore (attention and weight)
+            outputNegativeRawRegex: "$1$2",
+            recursiveCheck: false
+        },
+        {
+            //Word with weight such as: '(word,:weight)'
+            inputRegex: [String.raw`\(([^(]+)(?![\-\+\d])\,\s{0,5}\:\s{0,5}([\d\.]+)\s{0,5}\)`],
+            outputRegex: "($1)$2", //Expected matches '($1,:$2)'=> '($1)$2'
+            outputNegativeRegex: "($1)$2",
+            //Negative raw will be used when user choose to ignore (attention and weight)
+            outputNegativeRawRegex: "$1",
+            recursiveCheck: false
+        },
+        {
+            //Word with weight such as: '(word):weight'
+            inputRegex: [String.raw`(\([^(]+\))(?![\-\+\d])\s{0,5}\:\:\s{0,5}([\d\.]+)`, String.raw`(\([^(]+\))(?![\-\+\d])\s{0,5}\:\s{0,5}([\d\.]+)`],
+            outputRegex: "$1$2", //Expected matches '$1:$2'=> '($1)$2'
+            outputNegativeRegex: "$1$2",
+            //Negative raw will be used when user choose to ignore (attention and weight)
+            outputNegativeRawRegex: "$1",
+            recursiveCheck: false
+        },
+        {
+            //Attention without weight
+            inputRegex: String.raw`(?<!withLora)!#([^)(?!\\)]+)#!(?![\-\+\d])`,
+            //'inputRegex, outputRegex'->'recursiveCheck' style
+            outputRegex: "($1)@", //@ suppose to be replaced with one '+' or more based on check
+            outputNegativeRegex: "($1)!", //! suppose to be replaced with one '+' or more based on check
+            //Negative raw will be used when user choose to ignore (attention and weight)
+            outputNegativeRawRegex: "$1",
+            //This will activate 'recursiveCheck' process from 'loopCount' value to 0
+            recursiveCheck: true,
+            //Replacement guide map so 'recursiveCheck' can use it while checking
+            replacementsMap:
+            {
+                loopCount: 10,
+                replacements: [
+                    //'output:bool' used to apply replacement on 'false'->'inputRegex' or 'true'->'outputRegex'
+                    { target: "!#", replacement: String.raw`\(`, output: false },
+                    { target: "#!", replacement: String.raw`\)`, output: false },
+                    { target: "@", replacement: "+", output: true },
+                    { target: "!", replacement: "+", output: true },
+                ]
+            },
+        },
+
+        {
             //LoRa
             inputRegex: String.raw`\<lora:(.*?):\s{0,3}([\d\.]+)\>`,
             outputRegex: "withLora($1,$2)", //Expected matches '<lora:$1:$2>'
@@ -327,33 +315,17 @@ var regexConversionTable = {
             recursiveCheck: false
         },
         {
-            //Aspect ratio protect to avoid case like aspect ratio 1:1 => (aspect ratio 1)1 which is wrong
-            inputRegex: String.raw`aspect ratio (\d):(\d)`,
-            outputRegex: "aspect ratio $1 by $2", //I don't know how to solve this in invokeai v2 (using ':' will trigger blending instead) so we just replace ':' with 'by'
-            outputNegativeRegex: "aspect ratio $1 by $2",
-            //Negative raw will be used when user choose to ignore (attention and weight)
-            outputNegativeRawRegex: "aspect ratio $1 by $2",
-            recursiveCheck: false,
-            v3: {
-                //Using ':' is fine in v3
-                outputRegex: "aspect ratio $1#$2",
-                outputNegativeRegex: "aspect ratio $1#$2",
-                //Negative raw will be used when user choose to ignore (attention and weight)
-                outputNegativeRawRegex: "aspect ratio $1#$2",
-            }
-        },
-        {
             //Texture inversion with weight
             inputRegex: String.raw`<(?!lora|lyco)(.*?)\:([\d\.]+)>`,
-            outputRegex: "$1:$2", //For v2 I think it must be without '<>'
+            outputRegex: "$1:$2", //For v2 I think it must be without '<>' (some has '<>' but I don't know, no clear rule)
             outputNegativeRegex: "$1:$2",
             //Negative raw will be used when user choose to ignore (attention and weight)
             outputNegativeRawRegex: "$1",
             recursiveCheck: false,
             v3: {
                 //Using ':' and '<>' is fine in v3
-                outputRegex: "<$1#$2>",
-                outputNegativeRegex: "<$1#$2>",
+                outputRegex: "<$1:$2>",
+                outputNegativeRegex: "<$1:$2>",
                 //Negative raw will be used when user choose to ignore (attention and weight)
                 outputNegativeRawRegex: "<$1>",
             }
@@ -361,13 +333,13 @@ var regexConversionTable = {
         {
             //Texture inversion
             inputRegex: String.raw`<(?!lora|lyco)(.*?)>`,
-            outputRegex: "$1", //For v2 I think it must be without '<>'
+            outputRegex: "$1", //For v2 I think it must be without '<>' (some has '<>' but I don't know, no clear rule)
             outputNegativeRegex: "$1",
             //Negative raw will be used when user choose to ignore (attention and weight)
             outputNegativeRawRegex: "$1",
             recursiveCheck: false,
             v3: {
-                //Using ':' and '<>' is fine in v3
+                //Using '<>' is fine in v3
                 outputRegex: "<$1>",
                 outputNegativeRegex: "<$1>",
                 //Negative raw will be used when user choose to ignore (attention and weight)
@@ -376,41 +348,69 @@ var regexConversionTable = {
         },
         {
             //Word with weight such as: 'word:weight'
-            inputRegex: [String.raw`(?!\s)\{\{([a-zA-Z\s\_\-\d]{2,150})[\s]{0,3}\:\s{0,3}([\d\.]+)\}\}`, String.raw`(?!\s)([a-zA-Z\s\_\-\d]{2,50})[\s]{0,3}\:\s{0,3}([\d\.]+)`],
-            outputRegex: "($1)$2", //Expected matches '$1:$2'
-            outputNegativeRegex: "($1)$2",
+            inputRegex: [String.raw`(?<!\s)(\s{0,5})([a-zA-Z\_\-\d]{2,50})[\s]{0,3}\:\s{0,3}([\d\.]+)`],
+            outputRegex: "$1($2)$3", //Expected matches '$1:$2'
+            outputNegativeRegex: "$1($2)$3",
             //Negative raw will be used when user choose to ignore (attention and weight)
-            outputNegativeRawRegex: "$1",
+            outputNegativeRawRegex: "$1$2",
             recursiveCheck: false
-        },
-        {
-            //Aspect ratio protect resolve back (Happens in v3 only)
-            inputRegex: String.raw`aspect ratio (\d)#(\d)`,
-            outputRegex: "aspect ratio $1:$2",
-            outputNegativeRegex: "aspect ratio $1:$2",
-            //Negative raw will be used when user choose to ignore (attention and weight)
-            outputNegativeRawRegex: "aspect ratio $1:$2",
-            recursiveCheck: false,
-        },
-        {
-            //Texture inversion resolve back (Happens in v3 only)
-            inputRegex: String.raw`<(?!lora|lyco)(.*?)#([\d\.]+)>`,
-            outputRegex: "<$1:$2>",
-            outputNegativeRegex: "<$1:$2>",
-            //Negative raw will be used when user choose to ignore (attention and weight)
-            outputNegativeRawRegex: "<$1>",
-            recursiveCheck: false,
         },
         {
             //This regex made for cases like [keyword]
-            //as per online docs 'it decrease the strength by a factor of 0.9 and is the same as (keyword:0.9).'
-            inputRegex: String.raw`\[([^[]+)\](?![\+\d])`,
-            outputRegex: `($1)${defaultWeight}`,
-            outputNegativeRegex: `($1)${defaultWeight}`,
+            //Read: https://invoke-ai.github.io/InvokeAI/features/PROMPTS/#attention-weighting
+            //Read: https://github.com/AUTOMATIC1111/stable-diffusion-webui/wiki/Features#attentionemphasis
+            inputRegex: String.raw`(?<!\[)\[([^[(?!\]]+)\](?![\-\+\d])`,
+            outputRegex: `($1)${defaultDecrease}`,
+            outputNegativeRegex: `($1)${defaultDecrease}`,
             //Negative raw will be used when user choose to ignore (attention and weight)
             outputNegativeRawRegex: "$1",
             recursiveCheck: false
         },
+        {
+            //This regex made for cases like [keywords]:weight
+            inputRegex: [String.raw`(?<!\[)\[([^[(?!\]]+.*)\](?![\-\+\d])\s{0,5}\:\:\s{0,5}([\d\.]+)`, String.raw`(?<!\[)\[([^[(?!\]]+.*)\](?![\-\+\d])\s{0,5}\:\s{0,5}([\d\.]+)`],
+            outputRegex: `(($1)${defaultDecrease})$2`,
+            outputNegativeRegex: `(($1)${defaultDecrease})$2`,
+            //Negative raw will be used when user choose to ignore (attention and weight)
+            outputNegativeRawRegex: "($1)",
+            recursiveCheck: false
+        },
+        {
+            //This regex made for cases like [keywords]
+            inputRegex: String.raw`(?<!\[)\[([^[?!\]]+.*?)\](?![\-\+\d])`,
+            outputRegex: `($1)${defaultDecrease}`,
+            outputNegativeRegex: `($1)${defaultDecrease}`,
+            //Negative raw will be used when user choose to ignore (attention and weight)
+            outputNegativeRawRegex: "$1",
+            recursiveCheck: false
+        },
+        {
+            //This regex made for cases like [[keyword]]
+            inputRegex: String.raw`!#([^[?!\]]+)#!(?![\-\+\d])`,
+            //'inputRegex, outputRegex'->'recursiveCheck' style
+            outputRegex: "($1)@", //@ suppose to be replaced with one '-' or more based on check
+            outputNegativeRegex: "($1)!", //! suppose to be replaced with one '-' or more based on check
+            //Negative raw will be used when user choose to ignore (attention and weight)
+            outputNegativeRawRegex: "$1",
+            //This will activate 'recursiveCheck' process from 'loopCount' value to 0
+            recursiveCheck: true,
+            //Replacement guide map so 'recursiveCheck' can use it while checking
+            replacementsMap:
+            {
+                loopCount: 10,
+                replacements: [
+                    //'output:bool' used to apply replacement on 'false'->'inputRegex' or 'true'->'outputRegex'
+                    { target: "!#", replacement: String.raw`\[`, output: false },
+                    { target: "#!", replacement: String.raw`\]`, output: false },
+                    { target: "@", replacement: "-", output: true },
+                    { target: "!", replacement: "-", output: true },
+                ]
+            },
+        },
+
+        /******************/
+        /* LEFTOVER CASES */
+        /******************/
         {
             //This regex for leftover cases
             //so any resolved result ends with '::weight' will get fixed as below
@@ -474,7 +474,7 @@ var regexConversionTable = {
         {
             //This regex for leftover cases
             //Many uncalculated cases may cause ':' which will cause blend and break the output
-            inputRegex: String.raw`\:`,
+            inputRegex: String.raw`(?<!\\)\:`,
             outputRegex: ",", //It's safe to replace it with ',' for now
             outputNegativeRegex: ",",
             //Negative raw will be used when user choose to ignore (attention and weight)
@@ -483,6 +483,7 @@ var regexConversionTable = {
         },
         {
             //This regex for leftover cases, currently 'AND' will be replace with ':' which will allow to blend
+            //Not sure what [AND, BREAK..etc] do, so blend maybe not the perfect solution here
             inputRegex: String.raw`(\n)\s{0,5}(AND)\s{0,5}(\n)`,
             outputRegex: "$1:$3",
             outputNegativeRegex: "$1:$3",
@@ -521,9 +522,9 @@ var regexConversionTable = {
             recursiveCheck: false
         },
         {
-            //This regex will revert any '(word)defaultWeight' to '[word]'
+            //This regex will revert any '(word)defaultDecrease' to '[word]'
             //this case already explained above
-            inputRegex: String.raw`\(([^\)]+)\)${defaultWeight}`,
+            inputRegex: String.raw`\(([^\)]+)\)${defaultDecrease}`,
             outputRegex: `[$1]`,
             outputNegativeRegex: "[$1]",
             //Negative raw will be used when user choose to ignore (attention and weight)
@@ -541,8 +542,8 @@ var regexConversionTable = {
         },
         {
             //Regex to resolve back invokeai attention syntax
-            //it will match results such as: '(word)+' or '(word)-', '(word)+++' or '(word)--'....
-            inputRegex: [String.raw`\(([^)]+)\)@`, String.raw`\(([^)]+)\)!`],
+            //it will match results such as: '(word)+', '(word)+++'....
+            inputRegex: String.raw`\(([^)]+)\)@`,
             outputRegex: "!#$1#!",
             outputNegativeRegex: "!#$1#!",
             //Negative raw will be used when user choose to ignore (attention and weight)
@@ -553,9 +554,27 @@ var regexConversionTable = {
                 loopCount: 10,
                 replacements: [
                     { target: "@", replacement: String.raw`\+`, output: false },
-                    { target: "!", replacement: String.raw`\-`, output: false },
                     { target: "!#", replacement: `(`, output: true },
                     { target: "#!", replacement: `)`, output: true },
+                ]
+            },
+        },
+        {
+            //Regex to resolve back invokeai decrease syntax
+            //it will match results such as: '(word)-', '(word)--'....
+            inputRegex: String.raw`\(([^)]+)\)!`,
+            outputRegex: "!#$1#!",
+            outputNegativeRegex: "!#$1#!",
+            //Negative raw will be used when user choose to ignore (attention and weight)
+            outputNegativeRawRegex: "$1",
+            recursiveCheck: true,
+            replacementsMap:
+            {
+                loopCount: 10,
+                replacements: [
+                    { target: "!", replacement: String.raw`\-`, output: false },
+                    { target: "!#", replacement: `[`, output: true },
+                    { target: "#!", replacement: `]`, output: true },
                 ]
             },
         },

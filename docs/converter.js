@@ -410,20 +410,20 @@ function FetchRemoteImagePrompt(imageLink) {
                 };
                 xhr.onerror = function (e) {
                     onlineImageElement.addClass("wrong");
-                    onlineImageContainer.attr("data-tippy-content", e.message);
-                    showNotification('error', 'Error!', e.message+"<br>Check console log");
+                    onlineImageContainer.attr("data-tippy-content", (typeof e.message === 'undefined' ? "Please try again" : e.message));
+                    showNotification('error', 'Error!', (typeof e.message === 'undefined' ? "Please try again" : e.message) + "<br>Check console log");
                 };
 
                 xhr.onabort = function (e) {
                     onlineImageElement.addClass("wrong");
-                    onlineImageContainer.attr("data-tippy-content", e.message);
-                    showNotification('error', 'Aborted!', e.message+"<br>Check console log");
+                    onlineImageContainer.attr("data-tippy-content", (typeof e.message === 'undefined' ? "Please try again" : e.message));
+                    showNotification('error', 'Aborted!', (typeof e.message === 'undefined' ? "Please try again" : e.message) + "<br>Check console log");
                 };
 
                 xhr.ontimeout = function (e) {
                     onlineImageElement.addClass("wrong");
-                    onlineImageContainer.attr("data-tippy-content", e.message);
-                    showNotification('error', 'Timeout!', e.message+"<br>Check console log");
+                    onlineImageContainer.attr("data-tippy-content", (typeof e.message === 'undefined' ? "Please try again" : e.message));
+                    showNotification('error', 'Timeout!', (typeof e.message === 'undefined' ? "Please try again" : e.message) + "<br>Check console log");
                 };
 
                 xhr.send();
