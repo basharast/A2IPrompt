@@ -226,6 +226,18 @@ th {
   display: block;
 }
 
+.more-info:hover+.online-image-more {
+  display: inline-flex;
+}
+
+.online-image-more:hover {
+  display: inline-flex;
+}
+
+.more-info {
+  color: #aec416 !important;
+}
+
 .auto1111-tokens-a {
   background: #28865a;
   min-width: 50px;

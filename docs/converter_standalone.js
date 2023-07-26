@@ -83,12 +83,18 @@ function convertInvokeAIToAuto1111(inputPositive, inputNegative, ignoreNegativeP
 /* ENGINE CORE */
 /***************/
 var invokeaiVersion = 2;
-var defaultIncrease = 1.1;
-var defaultDecrease = 0.952;
+var defaultIncrease = 1.1; //'()'
+var defaultMedium = 1.05; //'{}'
+var defaultDecrease = 0.952; //'[]'
 var defaultGroupWeight = 0.952;
 var limitWeightPositive = "$1";
 var limitWeightNegative = "$1";
 var randomWeight = false;
+var usePowValueAlways = false; //No '+,-' will be used, only fixed value: '{{word}}' => '(word)1.1025'
+var powValuesMap = {
+    "+": defaultIncrease,
+    "-": defaultDecrease,
+}
 
 //Main prompt syntax resolver table
 //Be aware that elements order is important, don't change it
@@ -103,10 +109,10 @@ var regexConversionTable = {
         {
             //Group regex, no limited number for items
             //Supported cases: 
-            //1- {word1|word1|...} or {word1@weight|word1@weight|...} or {word1:weight|word1:weight|...} 
-            //2- [word1|word1|...] or [word1@weight|word1@weight|...] or [word1:weight|word1:weight|...] 
+            //1- [word1|word1|...] or [word1@weight|word1@weight|...] or [word1:weight|word1:weight|...] 
+            //2- {word1|word1|...} or {word1@weight|word1@weight|...} or {word1:weight|word1:weight|...} 
             //3- (word1|word1|...) or (word1@weight|word1@weight|...) or (word1:weight|word1:weight|...) 
-            inputRegex: [String.raw`\{([^\}]+)\}`, String.raw`\[([^\]]+)\]`, String.raw`(?<!withLora)\(([^\)(?!\\)]+)\)`],
+            inputRegex: [String.raw`\[([^\]]+)\]`, String.raw`\{([^\}]+)\}`, String.raw`(?<!withLora)\(([^\)(?!\\)]+)\)`],
             //'outputRegex'->'function' style
             outputRegex: function (inputText, regexGroups) {
                 for (const match of regexGroups) {
@@ -154,18 +160,22 @@ var regexConversionTable = {
         },
         {
             //Ratio, which will cause blend in v2 because of ':'
-            inputRegex: String.raw`(\,[\sA-Za-z]+\s{1,3}\d{1,2}):(\d{1,2}\s{0,3}\,)`,
-            outputRegex: "$1\\:$2", //Expected matches '$1:$2'=> '$1\:$2'
-            outputNegativeRegex: "$1\\:$2",
+            //this will look like simple case but it's very confusing, and could lead to weight issue if it wasn't accurate
+            inputRegex: [
+                String.raw`(\,\s{0,3}|^)([Aa]spect|[Rr]atio)(\s{0,3}\d{1,2}):(\d{1,2}\s{0,3})(\,|$)`,
+                String.raw`(\,\s{0,3}|^)()(\s{0,3}\d{1,2}):(\d{1,2}\s{0,3})(\,|$)`
+            ],
+            outputRegex: "$1$2$3\\:$4$5", //Expected matches '$1$2$3:$4$5'=> '$1$2$3\:$4$5'
+            outputNegativeRegex: "$1$2$3\\:$4$5",
             //Negative raw will be used when user choose to ignore (attention and weight)
-            outputNegativeRawRegex: "$1\\:$2",
+            outputNegativeRawRegex: "$1$2$3\\:$4$5",
             recursiveCheck: false,
             v3: {
                 //Using ':' is fine in v3
-                outputRegex: "$1:$2",
-                outputNegativeRegex: "$1:$2",
+                outputRegex: "$1$2$3:$4$5",
+                outputNegativeRegex: "$1$2$3:$4$5",
                 //Negative raw will be used when user choose to ignore (attention and weight)
-                outputNegativeRawRegex: "$1:$2",
+                outputNegativeRawRegex: "$1$2$3:$4$5",
             }
         },
         {
@@ -173,7 +183,6 @@ var regexConversionTable = {
             //This purely made based on test and not logic
             //weight with values such as 2 is causing bad results (mostly when it's in negative)
             //it will be forced to custom value by user
-            //TO-DO: make option to have random values
             inputRegex: [
                 function (negativeMatch = false) {
                     var matchRegex = String.raw`\)(\d+(?:\.\d+)?)\)`;
@@ -209,7 +218,7 @@ var regexConversionTable = {
                             var innerMatchRegex = fullMatch;
                             innerMatchRegex = innerMatchRegex.replace(/\)/g, String.raw`\)`);
                             innerMatchRegex = String.raw`${innerMatchRegex}(?![\.\d])`;
-                            var regexExp = new RegExp(innerMatchRegex, 'g');
+                            var regexExp = new RegExp(innerMatchRegex, 'gm');
                             inputText = inputText.replace(regexExp, replacement);
                         }
                     }
@@ -243,7 +252,7 @@ var regexConversionTable = {
                             var innerMatchRegex = fullMatch;
                             innerMatchRegex = innerMatchRegex.replace(/\)/g, String.raw`\)`);
                             innerMatchRegex = String.raw`${innerMatchRegex}(?![\.\d])`;
-                            var regexExp = new RegExp(innerMatchRegex, 'g');
+                            var regexExp = new RegExp(innerMatchRegex, 'gm');
                             inputText = inputText.replace(regexExp, replacement);
                         }
                     }
@@ -296,7 +305,7 @@ var regexConversionTable = {
                 }
                 return inputText;
             },
-            //but for now I use only the internal match as-is
+            //Use only the internal match as-is
             outputNegativeRegex: "$1",
             //Negative raw will be used when user choose to ignore (attention and weight)
             outputNegativeRawRegex: "$1",
@@ -327,6 +336,7 @@ var regexConversionTable = {
         {
             //Word with weight such as: '(word):weight'
             //TO-DO: case with '::' has very specific solution but for now it will be solved here
+            //TO-DO: This mentioned in auto1111 docs as: [from::when] - removes from from the prompt after a fixed number of steps (when)
             inputRegex: [String.raw`(\([^(]+\))(?![\-\+\d])\s{0,5}\:\:\s{0,5}([\d\.]+)`, String.raw`(\([^(]+\))(?![\-\+\d])\s{0,5}\:\s{0,5}([\d\.]+)`],
             outputRegex: "$1$2", //Expected matches '$1:$2'=> '($1)$2'
             outputNegativeRegex: "$1$2",
@@ -348,16 +358,24 @@ var regexConversionTable = {
             replacementsMap:
             {
                 loopCount: 10,
+                powValue: false,
                 replacements: [
                     //'output:bool' used to apply replacement on 'false'->'inputRegex' or 'true'->'outputRegex'
-                    { target: "!#", replacement: String.raw`\(`, output: false },
-                    { target: "#!", replacement: String.raw`\)`, output: false },
-                    { target: "@", replacement: "+", output: true },
-                    { target: "!", replacement: "+", output: true },
+                    { target: "!#", replacement: String.raw`\(`, powValue: false, output: false },
+                    { target: "#!", replacement: String.raw`\)`, powValue: false, output: false },
+                    {
+                        target: "@", replacement: "+", powValue: function () {
+                            return usePowValueAlways;
+                        }, output: true
+                    },
+                    {
+                        target: "!", replacement: "+", powValue: function () {
+                            return usePowValueAlways;
+                        }, output: true
+                    },
                 ]
             },
         },
-
         {
             //LoRa
             inputRegex: String.raw`\<lora:(.*?):\s{0,3}([\d\.]+)\>`,
@@ -434,6 +452,7 @@ var regexConversionTable = {
         {
             //This regex made for cases like [keywords]:weight
             //TO-DO: case with '::' has very specific solution but for now it will be solved here
+            //TO-DO: This mentioned in auto1111 docs as: [from::when] - removes from from the prompt after a fixed number of steps (when)
             inputRegex: [String.raw`(?<!\[)\[([^[(?!\]]+.*)\](?![\-\+\d])\s{0,5}\:\:\s{0,5}([\d\.]+)`, String.raw`(?<!\[)\[([^[(?!\]]+.*)\](?![\-\+\d])\s{0,5}\:\s{0,5}([\d\.]+)`],
             outputRegex: `(($1)${defaultDecrease})$2`,
             outputNegativeRegex: `(($1)${defaultDecrease})$2`,
@@ -452,7 +471,8 @@ var regexConversionTable = {
         },
         {
             //This regex made for cases like [[keyword]]
-            inputRegex: String.raw`!#([^[?!\]]+)#!(?![\-\+\d])`,
+            //It will ignore 'Scenario Loader' case
+            inputRegex: String.raw`!#(?!Scenario Loader)([^[?!\]]+)#!(?![\-\+\d])`,
             //'inputRegex, outputRegex'->'recursiveCheck' style
             outputRegex: "($1)@", //@ suppose to be replaced with one '-' or more based on check
             outputNegativeRegex: "($1)!", //! suppose to be replaced with one '-' or more based on check
@@ -464,12 +484,45 @@ var regexConversionTable = {
             replacementsMap:
             {
                 loopCount: 10,
+                powValue: false,
                 replacements: [
                     //'output:bool' used to apply replacement on 'false'->'inputRegex' or 'true'->'outputRegex'
-                    { target: "!#", replacement: String.raw`\[`, output: false },
-                    { target: "#!", replacement: String.raw`\]`, output: false },
-                    { target: "@", replacement: "-", output: true },
-                    { target: "!", replacement: "-", output: true },
+                    { target: "!#", replacement: String.raw`\[`, powValue: false, output: false },
+                    { target: "#!", replacement: String.raw`\]`, powValue: false, output: false },
+                    {
+                        target: "@", replacement: "-", powValue: function () {
+                            return usePowValueAlways;
+                        }, output: true
+                    },
+                    {
+                        target: "!", replacement: "-", powValue: function () {
+                            return usePowValueAlways;
+                        }, output: true
+                    },
+                ]
+            },
+        },
+        {
+            //This regex made for cases like {{keyword}}
+            inputRegex: String.raw`!#([^\}]+)#!(?![\-\+\d])`,
+            //'inputRegex, outputRegex'->'recursiveCheck' style
+            outputRegex: "($1)@", //@ suppose to be replaced with one '-' or more based on check
+            outputNegativeRegex: "($1)!", //! suppose to be replaced with one '-' or more based on check
+            //Negative raw will be used when user choose to ignore (attention and weight)
+            outputNegativeRawRegex: "$1",
+            //This will activate 'recursiveCheck' process from 'loopCount' value to 0
+            recursiveCheck: true,
+            //Replacement guide map so 'recursiveCheck' can use it while checking
+            replacementsMap:
+            {
+                loopCount: 10,
+                //No alternatives I know for this, it will be replaced by fixed pow value
+                replacements: [
+                    //'output:bool' used to apply replacement on 'false'->'inputRegex' or 'true'->'outputRegex'
+                    { target: "!#", replacement: String.raw`\{`, powValue: false, output: false },
+                    { target: "#!", replacement: String.raw`\}`, powValue: false, output: false },
+                    { target: "@", replacement: defaultMedium, powValue: true, output: true },
+                    { target: "!", replacement: defaultMedium, powValue: true, output: true },
                 ]
             },
         },
@@ -480,6 +533,7 @@ var regexConversionTable = {
         {
             //This regex for leftover cases
             //so any resolved result ends with '::weight' will get fixed as below
+            //TO-DO: This mentioned in auto1111 docs as: [from::when] - removes from from the prompt after a fixed number of steps (when)
             inputRegex: String.raw`(::[\d\.]+)`,
             outputRegex: "", //No idea currently, will be replace by empty string
             outputNegativeRegex: "",
@@ -539,13 +593,57 @@ var regexConversionTable = {
         },
         {
             //This regex for leftover cases
-            //Many uncalculated cases may cause ':' which will cause blend and break the output
+            //Many uncalculated cases 'scenario:' which will cause blend and break the output (V2)
+            inputRegex: String.raw`scenario(?<!\\)\:`,
+            outputRegex: String.raw`scenario\:`, //It's safe to replace it with ',' for now
+            outputNegativeRegex: String.raw`scenario\:`,
+            //Negative raw will be used when user choose to ignore (attention and weight)
+            outputNegativeRawRegex: String.raw`scenario\:`,
+            recursiveCheck: false,
+            v3: {
+                //Using ':' is fine in v3
+                outputRegex: "scenario:",
+                outputNegativeRegex: "scenario:",
+                //Negative raw will be used when user choose to ignore (attention and weight)
+                outputNegativeRawRegex: "scenario:",
+            }
+        },
+        {
+            //This regex for leftover cases
+            //Many uncalculated cases ':' which will cause blend and break the output (V2)
             inputRegex: String.raw`(?<!\\)\:`,
             outputRegex: ",", //It's safe to replace it with ',' for now
             outputNegativeRegex: ",",
             //Negative raw will be used when user choose to ignore (attention and weight)
             outputNegativeRawRegex: ",",
-            recursiveCheck: false
+            recursiveCheck: false,
+            v3: {
+                //Using ':' is fine in v3
+                outputRegex: ":",
+                outputNegativeRegex: ":",
+                //Negative raw will be used when user choose to ignore (attention and weight)
+                outputNegativeRawRegex: ":",
+            }
+        },
+        {
+            //This regex for leftover cases
+            //Many uncalculated cases '{', this shouldn't happen unless prompt has '{' without close
+            inputRegex: String.raw`(?<!\\)\{`,
+            outputRegex: "",
+            outputNegativeRegex: "",
+            //Negative raw will be used when user choose to ignore (attention and weight)
+            outputNegativeRawRegex: "",
+            recursiveCheck: false,
+        },
+        {
+            //This regex for leftover cases
+            //Many uncalculated cases '{', this shouldn't unless prompt has '}' without close
+            inputRegex: String.raw`(?<!\\)\}`,
+            outputRegex: "",
+            outputNegativeRegex: "",
+            //Negative raw will be used when user choose to ignore (attention and weight)
+            outputNegativeRawRegex: "",
+            recursiveCheck: false,
         },
         {
             //This regex for leftover cases, currently 'AND' will be replace with ':' which will allow to blend
@@ -619,9 +717,9 @@ var regexConversionTable = {
             {
                 loopCount: 10,
                 replacements: [
-                    { target: "@", replacement: String.raw`\+`, output: false },
-                    { target: "!#", replacement: `(`, output: true },
-                    { target: "#!", replacement: `)`, output: true },
+                    { target: "@", replacement: String.raw`\+`, powValue: false, output: false },
+                    { target: "!#", replacement: `(`, powValue: false, output: true },
+                    { target: "#!", replacement: `)`, powValue: false, output: true },
                 ]
             },
         },
@@ -639,8 +737,8 @@ var regexConversionTable = {
                 loopCount: 10,
                 replacements: [
                     { target: "!", replacement: String.raw`\-`, output: false },
-                    { target: "!#", replacement: `[`, output: true },
-                    { target: "#!", replacement: `]`, output: true },
+                    { target: "!#", replacement: `[`, powValue: false, output: true },
+                    { target: "#!", replacement: `]`, powValue: false, output: true },
                 ]
             },
         },
@@ -713,9 +811,27 @@ function regexValueRecursiveReplace(input, regexPatternItem, ignoreNegativeParam
                 var mapTarget = replacementItem.target;
                 var mapReplacement = replacementItem.replacement;
                 var mapOutput = replacementItem.output;
+                var powValue = typeof replacementItem.powValue !== 'function' ? replacementItem.powValue : replacementItem.powValue();
                 if (iterations > 0) {
-                    for (var j = 0; j < iterations; j++) {
-                        mapReplacement += replacementItem.replacement;
+                    if (powValue) {
+                        var numericValue = replacementItem.replacement;
+                        if (typeof numericValue === 'string') {
+                            numericValue = powValuesMap[numericValue];
+                        }
+                        var pValue = Math.pow(numericValue, iterations + 1);
+                        mapReplacement = parseFloat(pValue.toFixed(4)).toString();
+                    } else {
+                        for (var j = 0; j < iterations; j++) {
+                            mapReplacement += replacementItem.replacement;
+                        }
+                    }
+                } else {
+                    if (powValue) {
+                        var numericValue = replacementItem.replacement;
+                        if (typeof numericValue === 'string') {
+                            numericValue = powValuesMap[numericValue];
+                        }
+                        mapReplacement = numericValue.toString();
                     }
                 }
 
@@ -741,8 +857,8 @@ function regexValueRecursiveReplace(input, regexPatternItem, ignoreNegativeParam
                 matchPositive = inputRegexItem;
                 matchNegative = inputRegexItem;
             }
-            var regexExp = new RegExp(matchPositive, 'g');
-            var regexNegativeExp = new RegExp(matchNegative, 'g');
+            var regexExp = new RegExp(matchPositive, 'gm');
+            var regexNegativeExp = new RegExp(matchNegative, 'gm');
 
             if (typeof patternOutput !== 'function' || patternOutput.toString().indexOf("regexGroups") === -1) {
                 if (typeof patternOutput !== 'function') {
@@ -839,8 +955,8 @@ function regexValueReplace(input, regexPatternItem, ignoreNegativeParameters = f
             matchPositive = inputRegexItem;
             matchNegative = inputRegexItem;
         }
-        var regexExp = new RegExp(matchPositive, 'g');
-        var regexNegativeExp = new RegExp(matchNegative, 'g');
+        var regexExp = new RegExp(matchPositive, 'gm');
+        var regexNegativeExp = new RegExp(matchNegative, 'gm');
 
         if (typeof patternOutput !== 'function' || patternOutput.toString().indexOf("regexGroups") === -1) {
             if (typeof patternOutput !== 'function') {
@@ -935,7 +1051,7 @@ function prepareOutput(simpleInput, originalPositive, originalNegative, invokeAI
     return output;
 }
 
-function setLimitedWeight(positive, negative, random = false) {
+function setLimitedWeight(positive, negative, random = false, forcePow = false) {
     if (positive !== null && [...positive.matchAll(/[\d\.]+/g)].length && positive > 0) {
         limitWeightPositive = positive;
     } else {
@@ -948,6 +1064,7 @@ function setLimitedWeight(positive, negative, random = false) {
         limitWeightNegative = String.raw`$1`;
     }
     randomWeight = random;
+    usePowValueAlways = forcePow;
 }
 
 /******************/
@@ -997,7 +1114,7 @@ function calculateInvokeAITokens(inputPositive, inputNegative = "") {
     //Clean input positive from any 'negative' or new lines
     var cleanupRegex = [String.raw`\[([^\]]+)\]`, String.raw`\n`];
     cleanupRegex.forEach(element => {
-        var regexExp = new RegExp(element, 'g');
+        var regexExp = new RegExp(element, 'gm');
         inputPositive = inputPositive.replace(regexExp, "");
     });
 

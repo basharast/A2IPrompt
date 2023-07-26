@@ -19,6 +19,8 @@
     <script src="./assets/placeholder.js"></script>
     <script src="./assets/simple.js"></script>
     <script src="./assets/simplescrollbars.js"></script>
+    <script src="./assets/closeBrackets.js"></script>
+    <script src="./assets/matchbrackets.js"></script>
     <script src="./assets/popper.min.js"></script>
     <script src="./assets/tippy-bundle.umd.min.js"></script>
     <script src="./assets/crc32.js"></script>
@@ -184,20 +186,7 @@
                     <th>
                         <details id="online-image-info" style="display: none;">
                             <summary>Info</summary>
-                            <label class="input-label-invoke online-image-copy" target="image-info" copy-data=""
-                                copy-type="Model" data-tippy-content="Click to copy"><span
-                                    target="image-info-value">Model</span>
-                                <a class="invokeai-copy-b">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
-                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                        stroke-linejoin="round" class="tabler-icon tabler-icon-copy">
-                                        <path
-                                            d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z">
-                                        </path>
-                                        <path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path>
-                                    </svg>
-                                </a>
-                            </label>
+
                             <label class="input-label-invoke online-image-copy online-image-hover" target="image-info"
                                 copy-data="" copy-type="Preview" data-tippy-content="Click to copy"><span
                                     target="image-info-value">Preview</span>
@@ -228,8 +217,8 @@
                                 </a>
                             </label>
                             <label class="input-label-invoke online-image-copy" target="image-info" copy-data=""
-                                copy-type="Sampler" data-tippy-content="Click to copy"><span
-                                    target="image-info-value">Sampler</span>
+                                copy-type="Size" data-tippy-content="Click to copy"><span
+                                    target="image-info-value">Size</span>
                                 <a class="invokeai-copy-b">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
                                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
@@ -237,21 +226,8 @@
                                         <path
                                             d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z">
                                         </path>
-                                        <path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path>
-                                    </svg>
-                                </a>
-                            </label>
-                            <label class="input-label-invoke online-image-copy" target="image-info" copy-data=""
-                                copy-type="Steps" data-tippy-content="Click to copy"><span
-                                    target="image-info-value">Steps</span>
-                                <a class="invokeai-copy-b">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
-                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                        stroke-linejoin="round" class="tabler-icon tabler-icon-copy">
-                                        <path
-                                            d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z">
+                                        <path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2">
                                         </path>
-                                        <path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path>
                                     </svg>
                                 </a>
                             </label>
@@ -269,19 +245,8 @@
                                     </svg>
                                 </a>
                             </label>
-                            <label class="input-label-invoke online-image-copy" target="image-info" copy-data=""
-                                copy-type="Size" data-tippy-content="Click to copy"><span
-                                    target="image-info-value">Size</span>
-                                <a class="invokeai-copy-b">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
-                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                        stroke-linejoin="round" class="tabler-icon tabler-icon-copy">
-                                        <path
-                                            d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z">
-                                        </path>
-                                        <path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"></path>
-                                    </svg>
-                                </a>
+                            <label class="input-label-invoke online-image-copy more-info"
+                                data-tippy-content="...">More</span>
                             </label>
                         </details>
                     </th>
@@ -290,6 +255,14 @@
                     <th>
                         <details>
                             <summary>Weight</summary>
+                            <div class="options-check" data-tippy-content="Use exact value for attention/emphasis">
+                                <input class="checkbox-input switch" type="checkbox" id="pow-weight-check">
+                                <div>
+                                    <div></div>
+                                </div>
+                                <label id="pow-weight-label" class="checkbox-label switch"
+                                    for="pow-weight-check">Pow</label>
+                            </div>
                             <div class="options-check">
                                 <input class="checkbox-input switch" type="checkbox" id="limit-weight-check">
                                 <div>
@@ -312,7 +285,7 @@
                                     <div></div>
                                 </div>
                                 <label id="random-weight-label" class="checkbox-label switch" for="random-weight-check"
-                                    data-tippy-content="Randomize prompt weights (Enable limiter)">Random</label>
+                                    data-tippy-content="Randomize prompt weights (Enable limiter)">Rand</label>
                                 <span class="reload" id="random-weight-reload"
                                     data-tippy-content="Refresh">&#x21bb;</span>
                             </div>
@@ -354,7 +327,7 @@
     </div>
     <div id="notification-container"></div>
     <footer id="page-footer">
-        <div class="footer-copyright text-center">&copy; Developed with ❤️</i> by
+        <div class="footer-copyright text-center">&copy; Developed with ❤️ by
             <a href="https://github.com/basharast" class="white-text" target="_blank">Bashar Astifan</a>, <a
                 href="https://github.com/invoke-ai/InvokeAI/discussions/3680" class="white-text"
                 target="_blank">Discussions</a>

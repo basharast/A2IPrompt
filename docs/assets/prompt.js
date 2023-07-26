@@ -96,6 +96,7 @@ CodeMirror.defineSimpleMode("prompt-positive", {
         { regex: /[\/*=!]+/, token: "operator" },
         { regex: /[\(\)\+]+/, token: "operator-2" },
         { regex: /[\[\]\-]+/, token: "decrease-1" },
+        { regex: /[\{\}]+/, token: "medium-1" },
         { regex: /[a-zA-Z][a-zA-Z0-9]*/, token: colorByHashCode },
         // indent and dedent properties guide autoindentation
         { regex: /[\{\[\(]/, indent: true },
@@ -167,6 +168,7 @@ CodeMirror.defineSimpleMode("prompt-negative", {
         { regex: /[a-zA-Z][a-zA-Z0-9]*/, token: colorNegativeByHashCode },
         { regex: /[\(\)\+]+/, token: "operator-2" },
         { regex: /[\[\]\-]+/, token: "decrease-1" },
+        { regex: /[\{\}]+/, token: "medium-1" },
         // indent and dedent properties guide autoindentation
         { regex: /[\{\[\(]/, indent: true },
         { regex: /[\}\]\)]/, dedent: true },

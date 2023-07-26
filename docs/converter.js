@@ -11,6 +11,7 @@ var ignoreNegativeParameters = false;
 var autoCopyInvokeAI = false;
 var limitWeight = false;
 var randomizeWeight = false;
+var forcePowValue = false;
 var defaultLimitWeightPositive = "1.1";
 var defaultLimitWeightNegative = "1.1";
 var invokeaiVersion = 2;
@@ -78,6 +79,7 @@ $(document).ready(function () {
 
     //CodeMirror default config
     var mirrorConfigs = {
+        autoCloseBrackets: true,
         matchBrackets: true,
         lineWrapping: true,
         placeholder: "",
@@ -165,6 +167,7 @@ $(document).ready(function () {
     $('#raw-negative-check').prop('checked', ignoreNegativeParameters);
     $('#limit-weight-check').prop('checked', limitWeight);
     $('#random-weight-check').prop('checked', randomizeWeight);
+    $('#pow-weight-check').prop('checked', forcePowValue);
     $('#auto-copy-check').prop('checked', autoCopyInvokeAI);
     $('#limit-weight-positive-value').val(defaultLimitWeightPositive);
     $('#limit-weight-negative-value').val(defaultLimitWeightNegative);
@@ -177,7 +180,7 @@ $(document).ready(function () {
     $(".limit-weight").on("input", function () {
         defaultLimitWeightPositive = $('#limit-weight-positive-value').val();
         defaultLimitWeightNegative = $('#limit-weight-negative-value').val();
-        setLimitedWeight(defaultLimitWeightPositive, defaultLimitWeightNegative, randomizeWeight);
+        setLimitedWeight(defaultLimitWeightPositive, defaultLimitWeightNegative, randomizeWeight, forcePowValue);
         resolvePromptSyntax();
     });
 
@@ -185,7 +188,7 @@ $(document).ready(function () {
         $('.limit-weight').prop('disabled', false);
         $('#random-weight-label').attr('data-tippy-content', "Randomize prompt weights");
         $('#random-weight-container').removeClass("disabled");
-        setLimitedWeight(defaultLimitWeightPositive, defaultLimitWeightNegative, randomizeWeight);
+        setLimitedWeight(defaultLimitWeightPositive, defaultLimitWeightNegative, randomizeWeight, forcePowValue);
         if (ignoreNegativeParameters) {
             $('#limit-weight-negative-value').prop('disabled', true);
         } else {
@@ -224,7 +227,7 @@ $(document).ready(function () {
             $('#random-weight-check').prop('disabled', false);
             $('#random-weight-label').attr('data-tippy-content', "Randomize prompt weights");
             $('#random-weight-container').removeClass("disabled");
-            setLimitedWeight(defaultLimitWeightPositive, defaultLimitWeightNegative, randomizeWeight);
+            setLimitedWeight(defaultLimitWeightPositive, defaultLimitWeightNegative, randomizeWeight, forcePowValue);
             if (ignoreNegativeParameters) {
                 $('#limit-weight-negative-value').prop('disabled', true);
             } else {
@@ -235,7 +238,7 @@ $(document).ready(function () {
             $('#random-weight-check').prop('disabled', true);
             $('#random-weight-label').attr('data-tippy-content', "Randomize prompt weights (Enable limiter)");
             $('#random-weight-container').addClass("disabled");
-            setLimitedWeight("$1", "$1", randomizeWeight);
+            setLimitedWeight("$1", "$1", randomizeWeight, forcePowValue);
         }
         reverseConversion = $('#reverse-check').is(':checked');
         resolvePromptSyntax();
@@ -243,18 +246,30 @@ $(document).ready(function () {
 
     $('#random-weight-check').change(function () {
         randomizeWeight = this.checked;
-        setLimitedWeight(defaultLimitWeightPositive, defaultLimitWeightNegative, randomizeWeight);
+        setLimitedWeight(defaultLimitWeightPositive, defaultLimitWeightNegative, randomizeWeight, forcePowValue);
         reverseConversion = $('#reverse-check').is(':checked');
         resolvePromptSyntax();
     });
 
     $("#random-weight-reload").click(function () {
         if (randomizeWeight) {
-            setLimitedWeight(defaultLimitWeightPositive, defaultLimitWeightNegative, randomizeWeight);
+            setLimitedWeight(defaultLimitWeightPositive, defaultLimitWeightNegative, randomizeWeight, forcePowValue);
             reverseConversion = $('#reverse-check').is(':checked');
             resolvePromptSyntax();
         }
     });
+
+    $('#pow-weight-check').change(function () {
+        forcePowValue = this.checked;
+        if (limitWeight) {
+            setLimitedWeight(defaultLimitWeightPositive, defaultLimitWeightNegative, randomizeWeight, forcePowValue);
+        } else {
+            setLimitedWeight("$1", "$1", randomizeWeight, forcePowValue);
+        }
+        reverseConversion = $('#reverse-check').is(':checked');
+        resolvePromptSyntax();
+    });
+
 
     //Attach invokeai version event
     $('#invokeai-release').on('change', function (e) {
@@ -390,6 +405,8 @@ function RemoteImageCall() {
     onlineImageElement.removeClass("wrong");
     onlineImageContainer.attr("data-tippy-content", "Get prompt from online image");
     onlineImageInfo.hide();
+    $(".online-image-preview").attr("src", ""); //Clean old source
+    $(".more-info").attr("data-tippy-content", "...");
     if (link.length > 0) {
         FetchRemoteImagePrompt(link);
     }
@@ -450,52 +467,71 @@ function FetchRemoteImagePrompt(imageLink) {
                                         var fetchedcfgScale = typeof imageMeta["cfgScale"] !== 'undefined' && imageMeta["cfgScale"] !== null ? imageMeta["cfgScale"].toString() : "";
                                         var fetchedSize = typeof imageMeta["Size"] !== 'undefined' && imageMeta["Size"] !== null ? imageMeta["Size"] : "";
                                         var fetchedModel = typeof imageMeta["Model"] !== 'undefined' && imageMeta["Model"] !== null ? imageMeta["Model"] : "";
+                                        var moreInfo = "";
                                         var infoList = [
                                             {
-                                                type: "Seed",
-                                                data: fetchedSeed
+                                                type: "Model",
+                                                data: fetchedModel,
+                                                more: true,
+                                                color: "#bf4343"
                                             },
                                             {
                                                 type: "Sampler",
-                                                data: fetchedSampler
+                                                data: fetchedSampler,
+                                                more: true,
+                                                color: "#ccb32e"
                                             },
                                             {
                                                 type: "Steps",
-                                                data: fetchedSteps
+                                                data: fetchedSteps,
+                                                more: true,
+                                                color: "rgba(88, 194, 27)"
+                                            },
+                                            {
+                                                type: "Seed",
+                                                data: fetchedSeed,
+                                                more: false
                                             },
                                             {
                                                 type: "CFGScale",
-                                                data: fetchedcfgScale
+                                                data: fetchedcfgScale,
+                                                more: false
                                             },
                                             {
                                                 type: "Size",
-                                                data: fetchedSize
-                                            },
-                                            {
-                                                type: "Model",
-                                                data: fetchedModel
+                                                data: fetchedSize,
+                                                more: false
                                             },
                                             {
                                                 type: "Preview",
-                                                data: fetchedPreview
+                                                data: fetchedPreview,
+                                                more: false
                                             },
                                         ];
                                         infoList.forEach(function (imageInfoItem) {
                                             var dataType = imageInfoItem.type;
                                             var dataCopy = imageInfoItem.data;
                                             if (dataCopy.length > 0) {
-                                                $('[copy-type=' + dataType + ']').attr("copy-data", dataCopy);
-                                                if (dataType == "Preview") {
-                                                    $('[copy-type=' + dataType + ']').attr("data-tippy-content", "Click to copy");
-                                                    $(".online-image-preview").attr("src", dataCopy);
+                                                if (imageInfoItem.more) {
+                                                    var dataColor = imageInfoItem.color;
+                                                    moreInfo += `<span style="float: left;color:${dataColor};"><strong>${dataType}:</strong> ${dataCopy}</span><br>`;
                                                 } else {
-                                                    $('[copy-type=' + dataType + ']').attr("data-tippy-content", dataCopy);
+                                                    $('[copy-type=' + dataType + ']').attr("copy-data", dataCopy);
+                                                    if (dataType == "Preview") {
+                                                        $('[copy-type=' + dataType + ']').attr("data-tippy-content", "Click to copy");
+                                                        $(".online-image-preview").attr("src", dataCopy);
+                                                    } else {
+                                                        $('[copy-type=' + dataType + ']').attr("data-tippy-content", dataCopy);
+                                                    }
+                                                    $('[copy-type=' + dataType + ']').show();
                                                 }
-                                                $('[copy-type=' + dataType + ']').show();
                                             } else {
                                                 $('[copy-type=' + dataType + ']').hide();
                                             }
                                         });
+
+                                        moreInfo = `<div style="text-align: left;">${moreInfo}</div>`;
+                                        $(".more-info").attr("data-tippy-content", moreInfo);
 
                                         onlineImageInfo.show();
                                     } else {

@@ -1,3 +1,14 @@
+1.5.1:
+- Added extra weight case `{word}`
+- Added new option to use pow value instead of `+,-`
+- Added editors match and autoclose brackets
+- Improved aspect ratio detection such as `9:16`
+- Improved groups detection such as `{[word|word]:weight}`
+- Minimized online image info block
+- Fixed cache preview issue
+- Fixed issue prompts with multi lines
+- Added `Scenario Loader` detection
+
 1.5.0:
 - Fixed many translation cases
 - Re-arranged UI for better experience
