@@ -3,7 +3,7 @@
  * Link: https://github.com/basharast
  */
 
-var appVersion = "1.5.0";
+var appVersion = "1.6.0";
 
 var reverseConversion = false;
 var allowReverseConversion = false;

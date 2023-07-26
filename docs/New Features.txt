@@ -1,4 +1,4 @@
-1.5.1:
+1.6.0
 - Added extra weight case `{word}`
 - Added new option to use pow value instead of `+,-`
 - Added editors match and autoclose brackets
