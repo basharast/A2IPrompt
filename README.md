@@ -6,7 +6,7 @@ I'm sure it will make your life easier while applying prompts from online
 
 <img src="docs/assets/preview.jpg?t=123">
 
-<img src="docs/assets/preview2.JPG">
+<img src="docs/assets/preview2.JPG?t=123">
 
 ## Results
 
