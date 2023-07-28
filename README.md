@@ -101,7 +101,7 @@ var output2 = invokeaiResolver.convertInvokeAIToAuto1111(positive, negative, opt
             positive: { text: , tokens: },
             negative: { text: , tokens: },
         },
-        to: {
+    to: {
             positive: { text: , tokens: },
             negative: { text: , tokens: },
         }
@@ -115,12 +115,12 @@ var tokensOutput = invokeaiResolver.calculateInvokeAITokens(positive, negative);
 /*
     {
         positive: {
-            text: inputPositive,
-            tokens: this.calculateTokens(inputPositive, true)
+            text: ,
+            tokens: 
         },
         negative: {
-            text: inputNegative,
-            tokens: this.calculateTokens(inputNegative, true)
+            text: ,
+            tokens:
         }
     };
 */
