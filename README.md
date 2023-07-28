@@ -114,14 +114,8 @@ var tokensOutput = invokeaiResolver.calculateInvokeAITokens(positive, negative);
 //This function returns object as below:
 /*
     {
-        positive: {
-            text: ,
-            tokens: 
-        },
-        negative: {
-            text: ,
-            tokens:
-        }
+        positive: { text: , tokens: },
+        negative: { text: , tokens: }
     };
 */
 
