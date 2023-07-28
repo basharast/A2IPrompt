@@ -80,40 +80,40 @@ var invokeaiResolver = new InvokeAIPromptResolver();
 
 //Prepare options, all keys are optional, you don't have to add all of them
 var resolverOptions = {
-        invokeaiVersion: 2,
-        rawNegative: false,
-        limitWeightPositive: "$1",
-        limitWeightNegative: "$1",
-        randomWeight: false,
-        usePowValueAlways: false
-    };
+    invokeaiVersion: 2,
+    rawNegative: false,
+    limitWeightPositive: "$1",
+    limitWeightNegative: "$1",
+    randomWeight: false,
+    usePowValueAlways: false
+};
 
 //1- From auto1111 to invokeai 
-var output1 = invokeaiResolver.convertAuto1111ToInvokeAI (positive, negative, options);
+var output1 = invokeaiResolver.convertAuto1111ToInvokeAI(positive, negative, options);
 
 //2- From invokeai to auto1111
-var output2 = invokeaiResolver.convertInvokeAIToAuto1111 (positive, negative, options);;
+var output2 = invokeaiResolver.convertInvokeAIToAuto1111(positive, negative, options);;
 
 //Both functions (1 & 2) returns object as below:
 /*
-	{
-		from: {
-			positive: { text: , tokens: },
-			negative: { text: , tokens: },
-		},
-		to: {
-			positive: { text: , tokens: },
-			negative: { text: , tokens: },
-		}
-	}
+    {
+    from: {
+        positive: { text: , tokens: },
+            negative: { text: , tokens: },
+        },
+        to: {
+            positive: { text: , tokens: },
+            negative: { text: , tokens: },
+        }
+    }
 */
 
 //Calculate token without translation
 //Require `encoders/cl100k_base.js` to be included
-var tokensOutput = invokeaiResolver.calculateInvokeAITokens(positive, negative); 
+var tokensOutput = invokeaiResolver.calculateInvokeAITokens(positive, negative);
 //This function returns object as below:
 /*
-	{
+    {
         positive: {
             text: inputPositive,
             tokens: this.calculateTokens(inputPositive, true)
@@ -122,7 +122,7 @@ var tokensOutput = invokeaiResolver.calculateInvokeAITokens(positive, negative);
             text: inputNegative,
             tokens: this.calculateTokens(inputNegative, true)
         }
-	};
+    };
 */
 
 ```
