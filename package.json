@@ -1,5 +1,11 @@
 {
   "name": "invokeai-prompt-resolver",
   "version": "1.6.1",
-  "author": "Bashar Astifan <services@astifan.online>"
+  "author": "Bashar Astifan <services@astifan.online>",
+  "homepage": "https://github.com/basharast/A2IPrompt",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/basharast/A2IPrompt.git"
+  },
+  "main": "docs/converter_standalone.js",
 }
