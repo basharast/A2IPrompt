@@ -98,7 +98,7 @@ var output2 = invokeaiResolver.convertInvokeAIToAuto1111(positive, negative, opt
 /*
     {
     from: {
-        positive: { text: , tokens: },
+            positive: { text: , tokens: },
             negative: { text: , tokens: },
         },
         to: {
