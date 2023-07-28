@@ -49,7 +49,7 @@ class InvokeAIPromptResolver {
             negative: inputNegative
         };
 
-        ignoreNegativeParameters = false;
+        var ignoreNegativeParameters = false;
         if (typeof resolverOptions !== 'undefined' && resolverOptions !== null) {
             if (typeof resolverOptions["rawNegative"] !== 'undefined' && resolverOptions["rawNegative"] !== null) {
                 ignoreNegativeParameters = resolverOptions["rawNegative"];
@@ -76,18 +76,19 @@ class InvokeAIPromptResolver {
     convertInvokeAIToAuto1111 = function (inputPositive, inputNegative, resolverOptions = null) {
         //It's expected to have negative values within input
         //so it's better to fetch them (if any)
-        if (invokeaiVersion < 3) {
-            //Version 2 only, 3 doesn't support that
-            inputNegative += this.fetchInvokeAINegatives(inputPositive);
-        }
 
-        ignoreNegativeParameters = false;
+        var ignoreNegativeParameters = false;
         if (typeof resolverOptions !== 'undefined' && resolverOptions !== null) {
             if (typeof resolverOptions["rawNegative"] !== 'undefined' && resolverOptions["rawNegative"] !== null) {
                 ignoreNegativeParameters = resolverOptions["rawNegative"];
             }
         }
         this.parseResolverOptions(resolverOptions);
+
+        if (this.invokeaiVersion < 3) {
+            //Version 2 only, 3 doesn't support that
+            inputNegative += this.fetchInvokeAINegatives(inputPositive);
+        }
 
         var input = {
             positive: inputPositive,
