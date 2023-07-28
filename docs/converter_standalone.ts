@@ -43,7 +43,7 @@ class InvokeAIPromptResolver {
         //Constructor..
     }
     //Convert from automatic1111 to invokeai
-    convertAuto1111ToInvokeAI = function (inputPositive, inputNegative, resolverOptions = null) {
+    convertAuto1111ToInvokeAI = (inputPositive: any, inputNegative: any, resolverOptions = null) => {
         var input = {
             positive: inputPositive,
             negative: inputNegative
@@ -59,7 +59,7 @@ class InvokeAIPromptResolver {
 
         var targetConversionTable = this.regexConversionTable.invokeAIRegexPatterns;
         var resolverContext = this;
-        targetConversionTable.forEach(regexPatternItem => {
+        targetConversionTable.forEach(function (regexPatternItem: any) {
             var patternRecursive = regexPatternItem.recursiveCheck;
             if (patternRecursive) {
                 input = resolverContext.regexValueRecursiveReplace(input, regexPatternItem, ignoreNegativeParameters);
@@ -74,7 +74,7 @@ class InvokeAIPromptResolver {
     }
 
     //Convert from invokeai to automatic1111
-    convertInvokeAIToAuto1111 = function (inputPositive, inputNegative, resolverOptions = null) {
+    convertInvokeAIToAuto1111 = (inputPositive: any, inputNegative: any, resolverOptions = null) => {
         //It's expected to have negative values within input
         //so it's better to fetch them (if any)
 
@@ -91,14 +91,14 @@ class InvokeAIPromptResolver {
             inputNegative += this.fetchInvokeAINegatives(inputPositive);
         }
 
-        var input = {
+        var input: any = {
             positive: inputPositive,
             negative: inputNegative
         };
 
         var targetConversionTable = this.regexConversionTable.auto1111RegexPatterns;
         var resolverContext = this;
-        targetConversionTable.forEach(regexPatternItem => {
+        targetConversionTable.forEach(function (regexPatternItem: any) {
             var patternRecursive = regexPatternItem.recursiveCheck;
             if (patternRecursive) {
                 input = resolverContext.regexValueRecursiveReplace(input, regexPatternItem, ignoreNegativeParameters);
@@ -112,7 +112,7 @@ class InvokeAIPromptResolver {
         return finalOutput;
     }
 
-    parseResolverOptions = function (options) {
+    parseResolverOptions = (options: any) => {
         if (typeof options !== 'undefined' && options !== null) {
             var requiredOptions = [
                 {
@@ -141,7 +141,7 @@ class InvokeAIPromptResolver {
                     default: false
                 },
             ];
-            var resolverContext = this;
+            var resolverContext: any = this;
             requiredOptions.forEach(function (option) {
                 if (typeof options[option.key] !== 'undefined' && typeof options[option.key] !== null && [...options[option.key].toString().matchAll(option.check)].length) {
                     resolverContext[option.key] = options[option.key];
@@ -188,7 +188,7 @@ class InvokeAIPromptResolver {
                 //3- (word1|word1|...) or (word1@weight|word1@weight|...) or (word1:weight|word1:weight|...) 
                 inputRegex: [String.raw`\[([^\]]+)\]`, String.raw`\{([^\}]+)\}`, String.raw`(?<!withLora)\(([^\)(?!\\)]+)\)`],
                 //'outputRegex'->'function' style
-                outputRegex: function (context, inputText, regexGroups) {
+                outputRegex: function (context: any, inputText: any, regexGroups: any) {
                     for (const match of regexGroups) {
                         var fullMatch = match[0];
                         var innerMatch = match[1];
@@ -196,8 +196,8 @@ class InvokeAIPromptResolver {
                         //afaik this usualy used in auto1111 to blend/group multiple elements
                         if (innerMatch.indexOf("|") !== -1) {
                             var groups = innerMatch.split("|");
-                            var outputElements = [];
-                            groups.forEach(function (groupItem) {
+                            var outputElements: any = [];
+                            groups.forEach(function (groupItem: any) {
                                 var appendValue = "";
                                 groupItem = groupItem.trim();
                                 //The default weight split is ':', 
@@ -258,14 +258,14 @@ class InvokeAIPromptResolver {
                 //weight with values such as 2 is causing bad results (mostly when it's in negative)
                 //it will be forced to custom value by user
                 inputRegex: [
-                    function (context, negativeMatch = false) {
+                    function (context: any, negativeMatch = false) {
                         var matchRegex = String.raw`\)(\d+(?:\.\d+)?)\)`;
                         return matchRegex;
-                    }, function (context, negativeMatch = false) {
+                    }, function (context: any, negativeMatch = false) {
                         var matchRegex = String.raw`(?<!\\)\:(\d+(?:\.\d+)?)`;
                         return matchRegex;
                     }],
-                outputRegex: function (context, inputText, regexGroups) {
+                outputRegex: function (context: any, inputText: any, regexGroups: any) {
                     var limitedValue = context.limitWeightPositive;
                     if (limitedValue.indexOf("$1") === -1) {
                         if (limitedValue.indexOf(".") !== -1) {
@@ -287,7 +287,7 @@ class InvokeAIPromptResolver {
                             }
                             var fullMatch = match[0];
                             var innerMatch = match[1];
-                            if (parseFloat(innerMatch).toFixed(5) < 9 && (parseFloat(innerMatch).toFixed(5) > parseFloat(limitedValue).toFixed(5))) {
+                            if (parseFloat(parseFloat(innerMatch).toFixed(5)) < 9 && (parseFloat(innerMatch).toFixed(5) > parseFloat(limitedValue).toFixed(5))) {
                                 var replacement = fullMatch.replace(innerMatch, limitedValue);
                                 var innerMatchRegex = fullMatch;
                                 innerMatchRegex = innerMatchRegex.replace(/\)/g, String.raw`\)`);
@@ -299,7 +299,7 @@ class InvokeAIPromptResolver {
                     }
                     return inputText;
                 }, //Expected matches ':$1'
-                outputNegativeRegex: function (context, inputText, regexGroups) {
+                outputNegativeRegex: function (context: any, inputText: any, regexGroups: any) {
                     var limitedValue = context.limitWeightNegative;
                     if (limitedValue.indexOf("$1") === -1) {
                         if (limitedValue.indexOf(".") !== -1) {
@@ -321,7 +321,7 @@ class InvokeAIPromptResolver {
                             }
                             var fullMatch = match[0];
                             var innerMatch = match[1];
-                            if (parseFloat(innerMatch).toFixed(5) < 9 && (parseFloat(innerMatch).toFixed(5) > parseFloat(limitedValue).toFixed(5))) {
+                            if (parseFloat(parseFloat(innerMatch).toFixed(5)) < 9 && (parseFloat(innerMatch).toFixed(5) > parseFloat(limitedValue).toFixed(5))) {
                                 var replacement = fullMatch.replace(innerMatch, limitedValue);
                                 var innerMatchRegex = fullMatch;
                                 innerMatchRegex = innerMatchRegex.replace(/\)/g, String.raw`\)`);
@@ -344,15 +344,15 @@ class InvokeAIPromptResolver {
                 //the issue will start when we have: '(masterpiece, best quality:1.2)', this will be solved below
                 inputRegex: [String.raw`(?<!withLora)\(([^\)(?!\\)]+)\)`],
                 //'outputRegex'->'function' style
-                outputRegex: function (context, inputText, regexGroups) {
+                outputRegex: function (context: any, inputText: any, regexGroups: any) {
                     for (const match of regexGroups) {
                         var fullMatch = match[0];
                         var innerMatch = match[1];
                         //Check if internal matched value has ','
                         if (innerMatch.indexOf(",") !== -1) {
                             var groups = innerMatch.split(",");
-                            var outputElements = [];
-                            groups.forEach(function (groupItem) {
+                            var outputElements: any = [];
+                            groups.forEach(function (groupItem: any) {
                                 var appendValue = "";
                                 groupItem = groupItem.trim();
                                 //The default weight split is ':'
@@ -438,12 +438,12 @@ class InvokeAIPromptResolver {
                         { target: "!#", replacement: String.raw`\(`, powValue: false, output: false },
                         { target: "#!", replacement: String.raw`\)`, powValue: false, output: false },
                         {
-                            target: "@", replacement: "+", powValue: function (context) {
+                            target: "@", replacement: "+", powValue: function (context: any) {
                                 return context.usePowValueAlways;
                             }, output: true
                         },
                         {
-                            target: "!", replacement: "+", powValue: function (context) {
+                            target: "!", replacement: "+", powValue: function (context: any) {
                                 return context.usePowValueAlways;
                             }, output: true
                         },
@@ -564,12 +564,12 @@ class InvokeAIPromptResolver {
                         { target: "!#", replacement: String.raw`\[`, powValue: false, output: false },
                         { target: "#!", replacement: String.raw`\]`, powValue: false, output: false },
                         {
-                            target: "@", replacement: "-", powValue: function (context) {
+                            target: "@", replacement: "-", powValue: function (context: any) {
                                 return context.usePowValueAlways;
                             }, output: true
                         },
                         {
-                            target: "!", replacement: "-", powValue: function (context) {
+                            target: "!", replacement: "-", powValue: function (context: any) {
                                 return context.usePowValueAlways;
                             }, output: true
                         },
@@ -832,7 +832,7 @@ class InvokeAIPromptResolver {
     /********************/
     //Recursive regex replacer
     //'ignoreNegativeParameters' will force 'patternNegativeRawOutput' usage for negative prompts
-    regexValueRecursiveReplace = function (input, regexPatternItem, ignoreNegativeParameters = false) {
+    regexValueRecursiveReplace = (input: any, regexPatternItem: any, ignoreNegativeParameters = false) => {
         var inputPositive = input.positive;
         var inputNegative = input.negative;
         var replacementsMap = regexPatternItem.replacementsMap;
@@ -842,7 +842,7 @@ class InvokeAIPromptResolver {
         var patternOutput = regexPatternItem.outputRegex;
         var patternNegativeOutput = regexPatternItem.outputNegativeRegex;
         var patternNegativeRawOutput = regexPatternItem.outputNegativeRawRegex;
-        var resolverContext = this;
+        var resolverContext: any = this;
 
         for (var i = loopCount; i >= 0; i--) {
             var iterations = i;
@@ -888,7 +888,7 @@ class InvokeAIPromptResolver {
                 /* PREPARE REGEX EXPRESSION */
                 //This will prepare 'inputRegexItem' and 'patternOutput'
                 //Loop through replacements lists
-                replacements.forEach(function (replacementItem) {
+                replacements.forEach(function (replacementItem: any) {
                     var mapTarget = replacementItem.target;
                     var mapReplacement = replacementItem.replacement;
                     var mapOutput = replacementItem.output;
@@ -929,8 +929,8 @@ class InvokeAIPromptResolver {
                 });
 
                 /* MATCH AND REPLACE */
-                var matchPositive = null;
-                var matchNegative = null;
+                var matchPositive: any = null;
+                var matchNegative: any = null;
                 if (typeof inputRegexItem === 'function') {
                     matchPositive = inputRegexItem(resolverContext);
                     matchNegative = inputRegexItem(resolverContext, true);
@@ -991,7 +991,7 @@ class InvokeAIPromptResolver {
         return output;
     }
 
-    regexValueReplace = function (input, regexPatternItem, ignoreNegativeParameters = false) {
+    regexValueReplace = (input: any, regexPatternItem: any, ignoreNegativeParameters = false) => {
         var inputPositive = input.positive;
         var inputNegative = input.negative;
         var patternInput = regexPatternItem.inputRegex;
@@ -1028,8 +1028,8 @@ class InvokeAIPromptResolver {
 
         //Loop through all regex items
         inputRegexArray.forEach(function (inputRegexItem) {
-            var matchPositive = null;
-            var matchNegative = null;
+            var matchPositive: any = null;
+            var matchNegative: any = null;
             if (typeof inputRegexItem === 'function') {
                 matchPositive = inputRegexItem(resolverContext);
                 matchNegative = inputRegexItem(resolverContext, true);
@@ -1091,10 +1091,10 @@ class InvokeAIPromptResolver {
     }
 
     //Fetch invokeai negative prompts, returns 'string' output
-    fetchInvokeAINegatives = function (inputText) {
+    fetchInvokeAINegatives = function (inputText: any) {
         var negativeRegex = String.raw`\[([^\]]+)\]`;
         const regexGroups = inputText.matchAll(negativeRegex);
-        var negativeElements = [];
+        var negativeElements: any = [];
         for (const match of regexGroups) {
             var fullMatch = match[0];
             var innerMatch = match[1];
@@ -1104,7 +1104,7 @@ class InvokeAIPromptResolver {
     }
 
     //Output with tokens count
-    prepareOutput = function (simpleInput, originalPositive, originalNegative, invokeAIOriginal = false) {
+    prepareOutput = (simpleInput: any, originalPositive: any, originalNegative: any, invokeAIOriginal = false) => {
         var inputPositive = simpleInput.positive;
         var inputNegative = simpleInput.negative;
         var output = {
@@ -1133,7 +1133,7 @@ class InvokeAIPromptResolver {
         return output;
     }
 
-    setLimitedWeight = function (positive, negative, random = false, forcePow = false) {
+    setLimitedWeight = (positive: any, negative: any, random = false, forcePow = false) => {
         console.log(positive);
         if (positive !== null && [...positive.matchAll(/[\d\.]+/g)].length && positive > 0) {
             this.limitWeightPositive = positive;
@@ -1154,13 +1154,13 @@ class InvokeAIPromptResolver {
     /* TOKENS COUNTER */
     /******************/
     //Get cleaned results for accurate counting
-    resolveTokensValues = function (inputValue, invokeAI = false) {
+    resolveTokensValues = (inputValue: any, invokeAI = false) => {
         var resolverContext = this;
-        var regexCleaner = this.regexConversionTable.invokeAIRegexPatterns
+        var regexCleaner: any = this.regexConversionTable.invokeAIRegexPatterns
         if (invokeAI) {
             regexCleaner = this.regexConversionTable.auto1111RegexPatterns;
         }
-        regexCleaner.forEach(regexPatternItem => {
+        regexCleaner.forEach(function (regexPatternItem: any) {
             //We force negative raw cleanup style even for positive input
             var output = {
                 positive: "",
@@ -1177,9 +1177,10 @@ class InvokeAIPromptResolver {
         return inputValue;
     }
 
-    calculateTokens = function (inputValue, invokeAI = false) {
+    calculateTokens = (inputValue: any, invokeAI = false) => {
         var inputTokens = 0;
         //'encode' function available at 'encoders/cl100k_base.js', check 'index.html' header include
+        //If you are getting error here in `TypeScript` then you need to import `encode` function
         if (inputValue.length > 0 && typeof encode !== 'undefined') {
             var cleanedInput = this.resolveTokensValues(inputValue, invokeAI);
             const inputElementEncoded = encode(cleanedInput);
@@ -1188,7 +1189,7 @@ class InvokeAIPromptResolver {
         return inputTokens;
     }
 
-    calculateInvokeAITokens = function (inputPositive, inputNegative = "") {
+    calculateInvokeAITokens = (inputPositive: any, inputNegative = "") => {
         //It's expected to have negative values within input
         //so it's better to fetch them (if any)
         if (this.invokeaiVersion < 3) {
@@ -1217,7 +1218,7 @@ class InvokeAIPromptResolver {
         return output;
     }
 
-    getRandomFloat = function (min, max, decimals) {
+    getRandomFloat = function (min: any, max: any, decimals: any) {
         const str = (Math.random() * (max - min) + min).toFixed(decimals);
         return parseFloat(str);
     }
