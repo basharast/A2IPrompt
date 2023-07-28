@@ -1,0 +1,3 @@
+Just run `index.html`
+it will work locally on your browser
+------
