@@ -79,7 +79,7 @@ If you want to use the translation engine in your project use `converter_standal
 var invokeaiResolver = new InvokeAIPromptResolver();
 
 //Prepare options, all keys are optional, you don't have to add all of them
-var resolverOptions = {
+var options = {
     invokeaiVersion: 2,
     rawNegative: false,
     limitWeightPositive: "$1",
