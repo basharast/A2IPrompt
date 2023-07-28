@@ -5,6 +5,8 @@
 
 var appVersion = "1.6.0";
 
+var invokeaiResolver = new InvokeAIPromptResolver();
+
 var reverseConversion = false;
 var allowReverseConversion = false;
 var ignoreNegativeParameters = false;
@@ -12,8 +14,8 @@ var autoCopyInvokeAI = false;
 var limitWeight = false;
 var randomizeWeight = false;
 var forcePowValue = false;
-var defaultLimitWeightPositive = "1.1";
-var defaultLimitWeightNegative = "1.1";
+var defaultLimitWeightPositive = "$1";
+var defaultLimitWeightNegative = "$1";
 var invokeaiVersion = 2;
 
 var normalConversionInProgress = false;
@@ -29,14 +31,22 @@ function resolvePromptSyntax() {
     var inputNegative = "";
 
     var finalOutput = null;
+    var resolverOptions = {
+        invokeaiVersion: invokeaiVersion,
+        rawNegative: ignoreNegativeParameters,
+        limitWeightPositive: defaultLimitWeightPositive,
+        limitWeightNegative: defaultLimitWeightNegative,
+        randomWeight: randomizeWeight,
+        usePowValueAlways: forcePowValue
+    };
     if (!reverseConversion) {
         inputPositive = auto1111PositiveCodeMirror.getValue();
         inputNegative = auto1111NegativeCodeMirror.getValue();
-        finalOutput = convertAuto1111ToInvokeAI(inputPositive, inputNegative, ignoreNegativeParameters, invokeaiVersion);
+        finalOutput = invokeaiResolver.convertAuto1111ToInvokeAI(inputPositive, inputNegative, resolverOptions);
     } else {
         inputPositive = invokeaiPositiveCodeMirror.getValue();
         inputNegative = invokeaiNegativeCodeMirror.getValue();
-        finalOutput = convertInvokeAIToAuto1111(inputPositive, inputNegative, ignoreNegativeParameters, invokeaiVersion);
+        finalOutput = invokeaiResolver.convertInvokeAIToAuto1111(inputPositive, inputNegative, resolverOptions);
     }
 
     var invokeai = finalOutput.to;
@@ -73,8 +83,14 @@ function calculateTokensCount(invokeai, auto1111) {
     $('#auto1111-tokens-negative').html(auto1111.negative.tokens);
 }
 
+function resolveTippyData() {
+    if (limitWeight) {
+        $('#random-weight-label').attr('data-tippy-content', "Randomize prompt weights");
+    } else {
+        $('#random-weight-label').attr('data-tippy-content', "Randomize prompt weights (Enable limiter)");
+    }
+}
 //Page ready
-//Warning: before you scroll down, if you are looking for dynamic & organized code this is the wrong place, below everything made manually (planned to be better.. one day)
 $(document).ready(function () {
 
     //CodeMirror default config
@@ -105,7 +121,7 @@ $(document).ready(function () {
             } else {
                 //Just calculate tokens
                 var invokeAIInput = cm.getValue();
-                var tokensOutput = calculateInvokeAITokens(invokeAIInput);
+                var tokensOutput = invokeaiResolver.calculateInvokeAITokens(invokeAIInput);
                 $('#invokeai-tokens-positive').html(tokensOutput.positive.tokens);
             }
         }
@@ -126,7 +142,7 @@ $(document).ready(function () {
             } else {
                 //Just calculate tokens
                 var invokeAIInput = cm.getValue();
-                var tokensOutput = calculateInvokeAITokens("", invokeAIInput);
+                var tokensOutput = invokeaiResolver.calculateInvokeAITokens("", invokeAIInput);
                 $('#invokeai-tokens-negative').html(tokensOutput.negative.tokens);
             }
         }
@@ -169,8 +185,8 @@ $(document).ready(function () {
     $('#random-weight-check').prop('checked', randomizeWeight);
     $('#pow-weight-check').prop('checked', forcePowValue);
     $('#auto-copy-check').prop('checked', autoCopyInvokeAI);
-    $('#limit-weight-positive-value').val(defaultLimitWeightPositive);
-    $('#limit-weight-negative-value').val(defaultLimitWeightNegative);
+    $('#limit-weight-positive-value').val(invokeaiResolver.defaultIncrease); //1.1 by default
+    $('#limit-weight-negative-value').val(invokeaiResolver.defaultIncrease); //1.1 by default
     $("#remote-image-link").val("");
 
     //Set current version
@@ -180,15 +196,13 @@ $(document).ready(function () {
     $(".limit-weight").on("input", function () {
         defaultLimitWeightPositive = $('#limit-weight-positive-value').val();
         defaultLimitWeightNegative = $('#limit-weight-negative-value').val();
-        setLimitedWeight(defaultLimitWeightPositive, defaultLimitWeightNegative, randomizeWeight, forcePowValue);
         resolvePromptSyntax();
     });
 
+    resolveTippyData();
     if (limitWeight) {
         $('.limit-weight').prop('disabled', false);
-        $('#random-weight-label').attr('data-tippy-content', "Randomize prompt weights");
         $('#random-weight-container').removeClass("disabled");
-        setLimitedWeight(defaultLimitWeightPositive, defaultLimitWeightNegative, randomizeWeight, forcePowValue);
         if (ignoreNegativeParameters) {
             $('#limit-weight-negative-value').prop('disabled', true);
         } else {
@@ -197,7 +211,6 @@ $(document).ready(function () {
     } else {
         $('.limit-weight').prop('disabled', true);
         $('#random-weight-check').prop('disabled', true);
-        $('#random-weight-label').attr('data-tippy-content', "Randomize prompt weights (Enable limiter)");
         $('#random-weight-container').addClass("disabled");
     }
 
@@ -222,12 +235,13 @@ $(document).ready(function () {
 
     $('#limit-weight-check').change(function () {
         limitWeight = this.checked;
+        resolveTippyData();
         if (limitWeight) {
             $('.limit-weight').prop('disabled', false);
             $('#random-weight-check').prop('disabled', false);
-            $('#random-weight-label').attr('data-tippy-content', "Randomize prompt weights");
             $('#random-weight-container').removeClass("disabled");
-            setLimitedWeight(defaultLimitWeightPositive, defaultLimitWeightNegative, randomizeWeight, forcePowValue);
+            defaultLimitWeightPositive = $('#limit-weight-positive-value').val();
+            defaultLimitWeightNegative = $('#limit-weight-negative-value').val();
             if (ignoreNegativeParameters) {
                 $('#limit-weight-negative-value').prop('disabled', true);
             } else {
@@ -236,9 +250,9 @@ $(document).ready(function () {
         } else {
             $('.limit-weight').prop('disabled', true);
             $('#random-weight-check').prop('disabled', true);
-            $('#random-weight-label').attr('data-tippy-content', "Randomize prompt weights (Enable limiter)");
             $('#random-weight-container').addClass("disabled");
-            setLimitedWeight("$1", "$1", randomizeWeight, forcePowValue);
+            defaultLimitWeightPositive = "$1";
+            defaultLimitWeightNegative = "$1";
         }
         reverseConversion = $('#reverse-check').is(':checked');
         resolvePromptSyntax();
@@ -246,14 +260,12 @@ $(document).ready(function () {
 
     $('#random-weight-check').change(function () {
         randomizeWeight = this.checked;
-        setLimitedWeight(defaultLimitWeightPositive, defaultLimitWeightNegative, randomizeWeight, forcePowValue);
         reverseConversion = $('#reverse-check').is(':checked');
         resolvePromptSyntax();
     });
 
     $("#random-weight-reload").click(function () {
         if (randomizeWeight) {
-            setLimitedWeight(defaultLimitWeightPositive, defaultLimitWeightNegative, randomizeWeight, forcePowValue);
             reverseConversion = $('#reverse-check').is(':checked');
             resolvePromptSyntax();
         }
@@ -262,9 +274,11 @@ $(document).ready(function () {
     $('#pow-weight-check').change(function () {
         forcePowValue = this.checked;
         if (limitWeight) {
-            setLimitedWeight(defaultLimitWeightPositive, defaultLimitWeightNegative, randomizeWeight, forcePowValue);
+            defaultLimitWeightPositive = $('#limit-weight-positive-value').val();
+            defaultLimitWeightNegative = $('#limit-weight-negative-value').val();
         } else {
-            setLimitedWeight("$1", "$1", randomizeWeight, forcePowValue);
+            defaultLimitWeightPositive = "$1";
+            defaultLimitWeightNegative = "$1";
         }
         reverseConversion = $('#reverse-check').is(':checked');
         resolvePromptSyntax();
