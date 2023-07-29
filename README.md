@@ -36,7 +36,9 @@ or download this repo and open `index.html` it will work locally.
 
 ## Standalone (Developers)
 
-If you want to use the translation engine in your project use `converter_standalone.js`
+If you want to use the translation engine in your project use `converter_standalone.js` or `converter_standalone.ts` for `TypeScript`
+
+note that `.ts` version will report error for missing `encoder` function, you need to import that (`GPT-Tokenizer`) manually or disable the line if you're not intersted in tokens counter
 
 ```js
 //Create instance first
@@ -72,7 +74,7 @@ var output2 = invokeaiResolver.convertInvokeAIToAuto1111(positive, negative, opt
     }
 */
 
-//Calculate token without translation
+//Calculate tokens without translation
 //Require `encoders/cl100k_base.js` to be included
 var tokensOutput = invokeaiResolver.calculateInvokeAITokens(positive, negative);
 //This function returns object as below:
