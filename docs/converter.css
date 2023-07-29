@@ -465,7 +465,7 @@ input[type=checkbox].switch:checked+div>div {
 
 @-moz-document url-prefix() {
   .notifications__new {
-    top: -18px;
+    top: -6px;
   }
 }
 
