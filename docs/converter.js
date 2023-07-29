@@ -3,7 +3,7 @@
  * Link: https://github.com/basharast
  */
 
-var appVersion = "1.6.1";
+var appVersion = "1.6.3";
 
 var invokeaiResolver = new InvokeAIPromptResolver();
 
