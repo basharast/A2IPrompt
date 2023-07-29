@@ -474,7 +474,7 @@ input[type=checkbox].switch:checked+div>div {
   background: #28865a;
   color: wheat;
   text-align: center;
-  height: 20px;
+  height: 16px;
   border-radius: 5px;
   border: 1px solid;
 }
@@ -484,7 +484,7 @@ input[type=checkbox].switch:checked+div>div {
   background: #bf4343;
   color: wheat;
   text-align: center;
-  height: 20px;
+  height: 16px;
   border-radius: 5px;
   border: 1px solid;
 }
