@@ -432,7 +432,6 @@ class InvokeAIPromptResolver {
                 replacementsMap:
                 {
                     loopCount: 10,
-                    powValue: false,
                     replacements: [
                         //'output:bool' used to apply replacement on 'false'->'inputRegex' or 'true'->'outputRegex'
                         { target: "!#", replacement: String.raw`\(`, powValue: false, output: false },
@@ -558,7 +557,6 @@ class InvokeAIPromptResolver {
                 replacementsMap:
                 {
                     loopCount: 10,
-                    powValue: false,
                     replacements: [
                         //'output:bool' used to apply replacement on 'false'->'inputRegex' or 'true'->'outputRegex'
                         { target: "!#", replacement: String.raw`\[`, powValue: false, output: false },
@@ -580,8 +578,8 @@ class InvokeAIPromptResolver {
                 //This regex made for cases like {{keyword}}
                 inputRegex: String.raw`!#([^\}]+)#!(?![\-\+\d])`,
                 //'inputRegex, outputRegex'->'recursiveCheck' style
-                outputRegex: "($1)@", //@ suppose to be replaced with one '-' or more based on check
-                outputNegativeRegex: "($1)!", //! suppose to be replaced with one '-' or more based on check
+                outputRegex: "($1)@", //@ suppose to be replaced with pow value: each '{}'=>1.05
+                outputNegativeRegex: "($1)!", //! suppose to be replaced with pow value: each '{}'=>1.05
                 //Negative raw will be used when user choose to ignore (attention and weight)
                 outputNegativeRawRegex: "$1",
                 //This will activate 'recursiveCheck' process from 'loopCount' value to 0
