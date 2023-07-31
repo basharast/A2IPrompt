@@ -7,5 +7,7 @@
     "type": "git",
     "url": "https://github.com/basharast/A2IPrompt.git"
   },
-  "main": "docs/converter_standalone.js"
+  "main": "docs/converter_standalone.js",
+  "license" : "GPL-3.0" ,
+  "keywords": ["ai", "automatic1111", "auto1111", "invokeai", "prompt"]
 }
