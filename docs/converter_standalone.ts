@@ -378,7 +378,7 @@ class InvokeAIPromptResolver {
                                     if (groupItem.indexOf(splitItem) !== -1 && groupItem.indexOf(splitItem) !== 0) {
                                         var itemData = groupItem.split(splitItem);
                                         var itemText = itemData[0];
-                                        var itemWeight = itemData[1];
+                                        var itemWeight = itemData[1].trim();
                                         appendValue = `(${itemText})${itemWeight}`;
                                     }
                                 });
