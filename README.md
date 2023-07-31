@@ -52,7 +52,7 @@ var options = {
     limitWeightNegative: "$1",
     randomWeight: false,
     usePowValueAlways: false,
-	dynamicPrompts: true
+    dynamicPrompts: true
 };
 
 //1- From auto1111 to invokeai 
