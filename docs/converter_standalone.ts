@@ -29,12 +29,13 @@
 //Resolver options, all keys are optional, you don't have to add all of them
 /*
     resolverOptions = {
-        invokeaiVersion: 2,
+        invokeaiVersion: 3,
         rawNegative: false,
         limitWeightPositive: "$1",
         limitWeightNegative: "$1",
         randomWeight: false,
-        usePowValueAlways: false
+        usePowValueAlways: false,
+        dynamicPrompts: true
     };
 */
 
@@ -43,7 +44,7 @@ class InvokeAIPromptResolver {
         //Constructor..
     }
     //Convert from automatic1111 to invokeai
-    convertAuto1111ToInvokeAI = (inputPositive: any, inputNegative: any, resolverOptions = null) => {
+    convertAuto1111ToInvokeAI = (inputPositive: any, inputNegative: any, resolverOptions: any = null) => {
         var input = {
             positive: inputPositive,
             negative: inputNegative
@@ -74,7 +75,7 @@ class InvokeAIPromptResolver {
     }
 
     //Convert from invokeai to automatic1111
-    convertInvokeAIToAuto1111 = (inputPositive: any, inputNegative: any, resolverOptions = null) => {
+    convertInvokeAIToAuto1111 = (inputPositive: any, inputNegative: any, resolverOptions: any = null) => {
         //It's expected to have negative values within input
         //so it's better to fetch them (if any)
 
@@ -140,6 +141,11 @@ class InvokeAIPromptResolver {
                     check: /(true|false)/g,
                     default: false
                 },
+                {
+                    key: "dynamicPrompts",
+                    check: /(true|false)/g,
+                    default: true
+                },
             ];
             var resolverContext: any = this;
             requiredOptions.forEach(function (option) {
@@ -184,7 +190,7 @@ class InvokeAIPromptResolver {
                 //Group regex, no limited number for items
                 //Supported cases: 
                 //1- [word1|word1|...] or [word1@weight|word1@weight|...] or [word1:weight|word1:weight|...] 
-                //2- {word1|word1|...} or {word1@weight|word1@weight|...} or {word1:weight|word1:weight|...} 
+                //2- {word1|word1|...} or {word1@weight|word1@weight|...} or {word1:weight|word1:weight|...} => V2 only, excluded from V3
                 //3- (word1|word1|...) or (word1@weight|word1@weight|...) or (word1:weight|word1:weight|...) 
                 inputRegex: [String.raw`\[([^\]]+)\]`, String.raw`\{([^\}]+)\}`, String.raw`(?<!withLora)\(([^\)(?!\\)]+)\)`],
                 //'outputRegex'->'function' style
@@ -230,7 +236,17 @@ class InvokeAIPromptResolver {
                 outputNegativeRegex: "$1",
                 //Negative raw will be used when user choose to ignore (attention and weight)
                 outputNegativeRawRegex: "$1",
-                recursiveCheck: false
+                recursiveCheck: false,
+                v3: {
+                    inputRegex: function (context: any, negativeMatch = false) {
+                        var defaultRegex = [String.raw`\[([^\]]+)\]`, String.raw`(?<!withLora)\(([^\)(?!\\)]+)\)`];
+                        if (!context.dynamicPrompts) {
+                            //If dynamic prompts is off, then we goback to the default mode by replacing `{}`
+                            defaultRegex = [String.raw`\[([^\]]+)\]`, String.raw`\{([^\}]+)\}`, String.raw`(?<!withLora)\(([^\)(?!\\)]+)\)`];
+                        }
+                        return defaultRegex;
+                    },
+                }
             },
             {
                 //Ratio, which will cause blend in v2 because of ':'
@@ -597,6 +613,17 @@ class InvokeAIPromptResolver {
                         { target: "!", replacement: this.defaultMedium, powValue: true, output: true },
                     ]
                 },
+                v3: {
+                    //In V3 we exclude `{word|word..etc}` this case supported with dynamic prompts
+                    inputRegex: function (context: any, negativeMatch = false) {
+                        var defaultRegex = String.raw`!#([^\}(?!\|)]+)#!(?![\-\+\d])`;
+                        if (!context.dynamicPrompts) {
+                            //If dynamic prompts is off, then we goback to the default mode by replacing `{}`
+                            defaultRegex = String.raw`!#([^\}]+)#!(?![\-\+\d])`;
+                        }
+                        return defaultRegex;
+                    },
+                }
             },
 
             /******************/
@@ -706,6 +733,12 @@ class InvokeAIPromptResolver {
                 //Negative raw will be used when user choose to ignore (attention and weight)
                 outputNegativeRawRegex: "",
                 recursiveCheck: false,
+                v3: {
+                    //Leave it as is, in V3 those used with dynamic prompts
+                    outputRegex: "{",
+                    outputNegativeRegex: "{",
+                    outputNegativeRawRegex: "{",
+                }
             },
             {
                 //This regex for leftover cases
@@ -716,6 +749,12 @@ class InvokeAIPromptResolver {
                 //Negative raw will be used when user choose to ignore (attention and weight)
                 outputNegativeRawRegex: "",
                 recursiveCheck: false,
+                v3: {
+                    //Leave it as is, in V3 those used with dynamic prompts
+                    outputRegex: "}",
+                    outputNegativeRegex: "}",
+                    outputNegativeRawRegex: "}",
+                }
             },
             {
                 //This regex for leftover cases, currently 'AND' will be replace with ':' which will allow to blend
@@ -878,6 +917,14 @@ class InvokeAIPromptResolver {
             if (typeof (patternInput) === 'object') {
                 //Assign it as-is
                 inputRegexArray = patternInput;
+            } else if (typeof (patternInput) === 'function') {
+                var result = patternInput(resolverContext);
+                if (typeof (result) === 'object') {
+                    //Assign it as-is
+                    inputRegexArray = result;
+                } else {
+                    inputRegexArray = [result];
+                }
             }
 
             //Loop through all regex items
@@ -1022,6 +1069,14 @@ class InvokeAIPromptResolver {
         if (typeof (patternInput) === 'object') {
             //Assign it as-is
             inputRegexArray = patternInput;
+        } else if (typeof (patternInput) === 'function') {
+            var result = patternInput(resolverContext);
+            if (typeof (result) === 'object') {
+                //Assign it as-is
+                inputRegexArray = result;
+            } else {
+                inputRegexArray = [result];
+            }
         }
 
         //Loop through all regex items

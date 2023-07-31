@@ -46,12 +46,13 @@ var invokeaiResolver = new InvokeAIPromptResolver();
 
 //Prepare options, all keys are optional, you don't have to add all of them
 var options = {
-    invokeaiVersion: 2,
+    invokeaiVersion: 3,
     rawNegative: false,
     limitWeightPositive: "$1",
     limitWeightNegative: "$1",
     randomWeight: false,
-    usePowValueAlways: false
+    usePowValueAlways: false,
+	dynamicPrompts: true
 };
 
 //1- From auto1111 to invokeai 

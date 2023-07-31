@@ -120,7 +120,7 @@
                     </label>
                     <select class="invokeai-release" id="invokeai-release" data-tippy-content="InvokeAI Version">
                         <option value="2">Version 2</option>
-                        <option value="3">Version 3</option>
+                        <option value="3" selected="selected">Version 3</option>
                     </select>
                 </th>
                 <th style="display: inline-flex;">
@@ -289,6 +289,20 @@
                                     data-tippy-content="Randomize prompt weights (Enable limiter)">Rand</label>
                                 <span class="reload" id="random-weight-reload"
                                     data-tippy-content="Refresh">&#x21bb;</span>
+                            </div>
+                        </details>
+                    </th>
+                </tr>
+                <tr>
+                    <th>
+                        <details>
+                            <summary>Invoke</summary>
+                            <div class="options-check" data-tippy-content="Will avoid converting `{word|word..}` to weight">
+                                <input class="checkbox-input switch" type="checkbox" id="dynamic-prompts-check">
+                                <div>
+                                    <div></div>
+                                </div>
+                                <label class="checkbox-label" for="dynamic-prompts-check">Dynamic Prompts</label>
                             </div>
                         </details>
                     </th>

@@ -3,10 +3,11 @@
  * Link: https://github.com/basharast
  */
 
-var appVersion = "1.6.3";
+var appVersion = "1.6.4";
 
 var invokeaiResolver = new InvokeAIPromptResolver();
 
+var dynamicPrompts = true;
 var reverseConversion = false;
 var allowReverseConversion = false;
 var ignoreNegativeParameters = false;
@@ -16,7 +17,7 @@ var randomizeWeight = false;
 var forcePowValue = false;
 var defaultLimitWeightPositive = "$1";
 var defaultLimitWeightNegative = "$1";
-var invokeaiVersion = 2;
+var invokeaiVersion = 3;
 
 var normalConversionInProgress = false;
 var reverseConversionInProgress = false;
@@ -37,7 +38,8 @@ function resolvePromptSyntax() {
         limitWeightPositive: defaultLimitWeightPositive,
         limitWeightNegative: defaultLimitWeightNegative,
         randomWeight: randomizeWeight,
-        usePowValueAlways: forcePowValue
+        usePowValueAlways: forcePowValue,
+        dynamicPrompts: dynamicPrompts
     };
     if (!reverseConversion) {
         inputPositive = auto1111PositiveCodeMirror.getValue();
@@ -180,6 +182,7 @@ $(document).ready(function () {
 
     //Set default options
     $('#reverse-check').prop('checked', allowReverseConversion);
+    $('#dynamic-prompts-check').prop('checked', dynamicPrompts);
     $('#raw-negative-check').prop('checked', ignoreNegativeParameters);
     $('#limit-weight-check').prop('checked', limitWeight);
     $('#random-weight-check').prop('checked', randomizeWeight);
@@ -213,6 +216,11 @@ $(document).ready(function () {
         $('#random-weight-check').prop('disabled', true);
         $('#random-weight-container').addClass("disabled");
     }
+
+    $('#dynamic-prompts-check').change(function () {
+        dynamicPrompts = this.checked;
+        resolvePromptSyntax();
+    });
 
     $('#reverse-check').change(function () {
         allowReverseConversion = this.checked;
